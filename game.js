@@ -563,7 +563,7 @@ function defaultState() {
     buildings: {},
     upgrades: [],
     assignments: { mining: 0, farming: 0, thinking: 0, fighting: 0 },
-    zone: { current: 0, progress: 0, fighting: false, cleared: [] },
+    zone: { current: 0, progress: 0, fighting: false, cleared: [], casualtyAccum: 0 },
     prestige: { totalPoints: 0, spentPoints: 0, times: 0, perks: {} },
     multipliers: {
       click: 1, mining: 1, food: 1, schemes: 1, global: 1,
@@ -827,11 +827,13 @@ const Game = {
       return;
     }
     game.zone.fighting = true;
+    game.zone.casualtyAccum = 0;
     addLog(`Goblins sent into Zone ${game.zone.current + 1}!`, 'combat');
   },
 
   retreat() {
     game.zone.fighting = false;
+    game.zone.casualtyAccum = 0;
     addLog('Goblins retreated!', 'combat');
   },
 
@@ -1123,9 +1125,26 @@ function tickCombat(dt) {
   const dps = power * power / (power + zs.str);
   game.zone.progress += (dps / zs.hp) * 100 * dt;
 
+  // Zone hits back — stronger zones kill fighters faster
+  const casualtyRate = zs.str / (power + zs.str);
+  game.zone.casualtyAccum += casualtyRate * 0.005 * dt;
+  if (game.zone.casualtyAccum >= 1) {
+    game.zone.casualtyAccum = 0;
+    game.assignments.fighting--;
+    game.resources.goblins = Math.max(0, game.resources.goblins - 1);
+    addLog('A goblin fell in the dungeon. They fought brave. For a goblin.', 'combat');
+    if (game.assignments.fighting <= 0) {
+      game.zone.fighting = false;
+      game.zone.casualtyAccum = 0;
+      addLog('All fighters lost! Retreat! RETREAT!', 'warning');
+      return;
+    }
+  }
+
   if (game.zone.progress >= 100) {
     game.zone.progress = 100;
     game.zone.fighting = false;
+    game.zone.casualtyAccum = 0;
     game.zone.cleared.push(game.zone.current);
     game.stats.totalZonesCleared++;
 
