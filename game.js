@@ -419,6 +419,14 @@ const PRESTIGE_PERKS = [
   },
 ];
 
+const INTRO_PAGES = [
+  '<p>You are a <span class="intro-emphasis">goblin</span>.</p><p>You have always been a goblin. You live in a dungeon. You have never thought about why.</p><p>None of you have. Goblins don\'t ask questions. Goblins scavenge, fight over scraps, and live in the dark. That\'s just how it is.</p>',
+  '<p>One day, in the deepest corner of a broom closet, you find a <span class="intro-emphasis">skeleton</span>.</p><p>It is wearing a very fancy suit. There is a name tag on its chest: <span class="intro-gold">Regional Manager</span>.</p><p>Wedged beneath the skeleton is a book.</p>',
+  '<p>The book is called <span class="intro-gold">"MBA For Dummies."</span></p><p>Most of the words are too long. But you understand the pictures. They show someone sitting in a big chair, telling other people what to do. Someone who <span class="intro-emphasis">chose</span> what to build. Someone with a <span class="intro-emphasis">plan</span>.</p><p>You have never had a plan before.</p>',
+  '<p>You look around the broom closet. You look at the skeleton, at the book, at the other goblins sleeping in the dark.</p><p>Something is different now. Not the dungeon. <span class="intro-emphasis">You.</span></p><p>You want to know why this place exists. You want to know what happened here. And you want to build something — something where goblins aren\'t just scavengers. Something where they <span class="intro-emphasis">choose</span> what they do.</p>',
+  '<p>You open the book to Chapter 1:</p><p><span class="intro-gold">"Step One: Acquire Capital."</span></p><p>You look at the shiny rocks on the floor.</p><p>You pick one up.</p>',
+];
+
 
 // ===========================================
 // SECTION 2: GAME STATE
@@ -477,6 +485,7 @@ function defaultState() {
     flags: { overtimePay: false, middleManagement: false },
     stats: { totalClicks: 0, totalShinies: 0, highestZone: 0, totalZonesCleared: 0 },
     unlocks: {},
+    introSeen: false,
     tutorialDismissed: [],
     memos: [],
     log: [],
@@ -614,7 +623,43 @@ const Game = {
     if (!confirm('REALLY sure? Last chance.')) return;
     localStorage.removeItem('goblinInc');
     game = defaultState();
-    addLog('Game reset. Back to the broom closet.', 'warning');
+    UI._lastLogLength = 0;
+    UI.currentTab = 'gather';
+    UI.switchTab('gather');
+    Game.showIntro();
+  },
+
+  // --- INTRO ---
+
+  _introPage: 0,
+
+  showIntro() {
+    Game._introPage = 0;
+    const overlay = document.getElementById('intro-overlay');
+    const textEl = document.getElementById('intro-text');
+    const btn = document.getElementById('intro-next-btn');
+    overlay.classList.remove('hidden');
+    textEl.innerHTML = INTRO_PAGES[0];
+    btn.textContent = 'Continue';
+    btn.focus();
+  },
+
+  advanceIntro() {
+    Game._introPage++;
+    const textEl = document.getElementById('intro-text');
+    const btn = document.getElementById('intro-next-btn');
+    if (Game._introPage >= INTRO_PAGES.length) {
+      // Done - close overlay, start game
+      document.getElementById('intro-overlay').classList.add('hidden');
+      game.introSeen = true;
+      Game.save();
+      return;
+    }
+    textEl.innerHTML = INTRO_PAGES[Game._introPage];
+    if (Game._introPage === INTRO_PAGES.length - 1) {
+      btn.textContent = 'Begin';
+    }
+    btn.focus();
   },
 
   // --- CORE ACTIONS ---
@@ -1153,6 +1198,27 @@ const UI = {
     }
   },
 
+  toggleSettings() {
+    const menu = document.getElementById('settings-menu');
+    const btn = document.getElementById('settings-toggle');
+    const isHidden = menu.classList.contains('hidden');
+    menu.classList.toggle('hidden');
+    btn.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+    // Close on click outside
+    if (isHidden) {
+      setTimeout(() => {
+        const close = (e) => {
+          if (!menu.contains(e.target) && e.target !== btn) {
+            menu.classList.add('hidden');
+            btn.setAttribute('aria-expanded', 'false');
+            document.removeEventListener('click', close);
+          }
+        };
+        document.addEventListener('click', close);
+      }, 0);
+    }
+  },
+
   renderResources() {
     const rates = getProductionRates();
     const maxG = getMaxGoblins();
@@ -1497,6 +1563,11 @@ function init() {
   checkUnlocks();
   _silentUnlocks = false;
   checkMemos();
+
+  // Show intro on first play
+  if (!game.introSeen) {
+    Game.showIntro();
+  }
 
   // Auto-save every 30 seconds
   setInterval(() => Game.save(), 30000);

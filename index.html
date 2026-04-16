@@ -13,11 +13,14 @@
     <header id="header" role="banner">
       <div id="title-row">
         <h1>Goblin Inc.<span class="subtitle">Corporate Dungeon Management</span></h1>
-        <div id="header-buttons" role="toolbar" aria-label="Game controls">
-          <button id="save-btn" onclick="Game.save()" aria-label="Save game">Save</button>
-          <button id="export-btn" onclick="Game.exportSave()" aria-label="Export save to clipboard">Export</button>
-          <button id="import-btn" onclick="Game.importSave()" aria-label="Import save from clipboard">Import</button>
-          <button id="hard-reset-btn" onclick="Game.hardReset()" aria-label="Reset all progress">Reset</button>
+        <div id="settings-wrapper">
+          <button id="settings-toggle" onclick="UI.toggleSettings()" aria-label="Settings" aria-expanded="false" aria-controls="settings-menu">&#x2699;</button>
+          <div id="settings-menu" class="settings-menu hidden" role="menu" aria-label="Game settings">
+            <button role="menuitem" onclick="Game.save(); UI.toggleSettings()">Save Game</button>
+            <button role="menuitem" onclick="Game.exportSave(); UI.toggleSettings()">Export Save</button>
+            <button role="menuitem" onclick="Game.importSave(); UI.toggleSettings()">Import Save</button>
+            <button role="menuitem" id="hard-reset-btn" onclick="Game.hardReset(); UI.toggleSettings()">Reset All Progress</button>
+          </div>
         </div>
       </div>
       <div id="resource-bar" aria-label="Resources">
@@ -218,6 +221,14 @@
     <footer id="log" aria-label="Game events">
       <div id="log-messages"></div>
     </footer>
+  </div>
+
+  <!-- Intro overlay -->
+  <div id="intro-overlay" class="intro-overlay hidden" role="dialog" aria-modal="true" aria-label="Story introduction">
+    <div class="intro-content">
+      <div id="intro-text" class="intro-text"></div>
+      <button id="intro-next-btn" class="intro-btn" onclick="Game.advanceIntro()">Continue</button>
+    </div>
   </div>
 
   <!-- Screen reader announcements -->
