@@ -69,7 +69,7 @@ const BUILDINGS = {
     desc: 'Where goblins build elaborate traps that mostly work. The ones that don\'t are "learning opportunities."',
     baseCost: { shinies: 120, schemes: 5 },
     costMult: 1.25,
-    effect: (lvl) => `+${10 * lvl}% combat power`,
+    effect: (lvl) => `+${10 * lvl * (typeof game !== 'undefined' ? (game.multipliers?.traps || 1) : 1)}% combat power`,
     unlockZone: 4,
     story: {
       1: 'First trap: hole with blanket on top. Caught three of OUR goblins before catching intruder. Is called "learning curve." Book has whole chapter on this.',
@@ -82,7 +82,7 @@ const BUILDINGS = {
     desc: 'Trade with the outside world. Mostly selling things we "found." Don\'t say "stole."',
     baseCost: { shinies: 250, schemes: 15 },
     costMult: 1.30,
-    effect: (lvl) => `+${5 * lvl}% all production`,
+    effect: (lvl) => `+${5 * lvl}% shinies, food & scheme production`,
     unlockZone: 7,
     story: {
       1: 'Hung sign outside tunnel: "OPEN FOR BIZNESS." Confused merchant came in. Traded stuff for shinies. Left ALIVE. Nobody ate him! This is HUGE.',
@@ -138,7 +138,7 @@ const UPGRADES = [
     name: 'Motivational Posters',
     desc: '"Hang in there" but the cat is a goblin dangling over a pit.',
     cost: { schemes: 50 },
-    effect: '+50% all production',
+    effect: '+50% shinies, food & scheme production',
     unlockZone: 3,
     apply: () => { game.multipliers.global *= 1.5; },
     story: 'Goblin who can\'t spell drew posters. "BELEEV IN YURSELF" on every wall. Old company had posters too: "PRODUCTIVITY IS FREEDOM." Difference? Ours made by someone who WANTED to make them.',
@@ -168,7 +168,7 @@ const UPGRADES = [
     name: 'Corporate Retreat',
     desc: 'A weekend of trust falls into spike pits. Team building!',
     cost: { schemes: 120 },
-    effect: '2x all production',
+    effect: '2x shinies, food & scheme production',
     unlockZone: 6,
     apply: () => { game.multipliers.global *= 2; },
     story: 'Held "retreat" in cleared cavern! Trust falls into mushroom piles! Bridge-building contest! One goblin did talk about FEELINGS. Nobody laughed. Not even once. We growing up.',
@@ -238,7 +238,7 @@ const UPGRADES = [
     name: 'Synergistic Synergies',
     desc: 'We held a meeting about meetings. The results were... synergistic.',
     cost: { schemes: 500 },
-    effect: '3x all production',
+    effect: '3x shinies, food & scheme production',
     unlockZone: 15,
     apply: () => { game.multipliers.global *= 3; },
     story: 'Put all departments in same room for first time. Miners talked to farmers. Thinkers talked to fighters. Cook talked to EVERYONE. By end, every team had ideas from every other team. Book calls this "syn-er-gee." Stupid word but the IDEA is real — we better together.',
@@ -288,7 +288,7 @@ const UPGRADES = [
     name: 'Corporate Ascension',
     desc: 'You\'ve read the entire MBA book. Even the index. You are become CEO, destroyer of margins.',
     cost: { schemes: 1200 },
-    effect: '5x all production',
+    effect: '5x shinies, food & scheme production',
     unlockZone: 20,
     apply: () => { game.multipliers.global *= 5; },
     story: 'Finished the book. Every chapter. Every footnote. Even the in-dex. And we realized something: book not really about business. Is about ORGANIZING GOBLINS. Difference between old company and Goblin Inc. not the tools or mushrooms. Is that we read same book and CHOSE to do it different.',
@@ -448,7 +448,7 @@ const PRESTIGE_PERKS = [
   },
   { id: 'productionBonus', name: 'Corporate Knowledge', desc: 'Permanent production bonus',
     maxLevel: 20, cost: (lvl) => lvl + 1,
-    effect: (lvl) => `+${5 * lvl}% all production`,
+    effect: (lvl) => `+${5 * lvl}% shinies, food & scheme production`,
     apply: (lvl) => { game.multipliers.prestige = 1 + 0.05 * lvl; },
   },
   { id: 'goblinBonus', name: 'Recruitment Drive', desc: 'Start with extra goblins',
@@ -1156,6 +1156,13 @@ function unassignOne() {
 
 function tickCombat(dt) {
   if (!game.zone.fighting) return;
+  // Auto-retreat if all fighters were unassigned mid-combat
+  if (game.assignments.fighting <= 0) {
+    game.zone.fighting = false;
+    game.zone.casualtyAccum = 0;
+    addLog('No fighters left — retreating!', 'warning');
+    return;
+  }
 
   const power = getCombatPower();
   const zs = getZoneStats(game.zone.current);
