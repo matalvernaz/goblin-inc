@@ -1536,18 +1536,30 @@ const UI = {
     document.getElementById('player-power').textContent = fmt(power);
     document.getElementById('fighter-count').textContent = game.assignments.fighting;
 
-    // Estimated clear time
+    // Combat details — show DPS, HP, and ETA when fighting or have fighters
+    const dpsRow = document.getElementById('zone-dps-row');
+    const hpRow = document.getElementById('zone-hp-row');
     const etaRow = document.getElementById('zone-eta-row');
-    const etaEl = document.getElementById('zone-eta');
     if (power > 0 && !cleared) {
       const combatDps = power * power / (power + zs.str);
       const remaining = (100 - game.zone.progress) / 100 * zs.hp;
       const secs = remaining / combatDps;
+
+      document.getElementById('zone-dps').textContent = fmt(combatDps);
+      dpsRow.style.display = '';
+
+      document.getElementById('zone-hp-current').textContent = fmt(remaining);
+      document.getElementById('zone-hp-max').textContent = fmt(zs.hp);
+      hpRow.style.display = '';
+
+      const etaEl = document.getElementById('zone-eta');
       if (secs < 60) etaEl.textContent = `${Math.ceil(secs)}s`;
       else if (secs < 3600) etaEl.textContent = `${Math.ceil(secs / 60)}m`;
       else etaEl.textContent = `${(secs / 3600).toFixed(1)}h`;
       etaRow.style.display = '';
     } else {
+      dpsRow.style.display = 'none';
+      hpRow.style.display = 'none';
       etaRow.style.display = 'none';
     }
 

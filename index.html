@@ -52,7 +52,8 @@
       </div>
     </header>
 
-    <nav id="tabs" role="tablist" aria-label="Game sections">
+    <h2 id="tabs-heading" class="sr-only">Game Sections</h2>
+    <nav id="tabs" role="tablist" aria-labelledby="tabs-heading">
       <button class="tab active" role="tab" aria-selected="true" aria-controls="panel-gather" id="tab-gather" data-tab="gather" onclick="UI.switchTab('gather')">
         <span class="tab-key" aria-hidden="true">1</span> Gather
       </button>
@@ -165,10 +166,11 @@
               <span id="zone-progress-text" aria-hidden="true">0%</span>
             </div>
             <div id="zone-stats" aria-label="Combat statistics">
-              <p>Zone Strength: <span id="zone-strength">5</span></p>
-              <p>Your Power: <span id="player-power">0</span></p>
               <p>Fighters: <span id="fighter-count">0</span> goblins</p>
-              <p id="zone-eta-row" style="display:none">Est. Clear: <span id="zone-eta"></span></p>
+              <p>Your Power: <span id="player-power">0</span> vs Zone Strength: <span id="zone-strength">5</span></p>
+              <p id="zone-dps-row" style="display:none">DPS: <span id="zone-dps">0</span></p>
+              <p id="zone-hp-row" style="display:none">Zone HP: <span id="zone-hp-current">0</span> / <span id="zone-hp-max">0</span></p>
+              <p id="zone-eta-row" style="display:none">Time Left: <span id="zone-eta"></span></p>
             </div>
             <div id="zone-controls">
               <button id="zone-fight-btn" onclick="Game.toggleFight()" aria-label="Send goblins to fight">Send Goblins!</button>
