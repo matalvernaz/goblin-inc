@@ -559,7 +559,7 @@ function defaultState() {
       prestige: 1, prestigeCombat: 1, prestigeClick: 1,
     },
     bonuses: { maxGoblins: 0, foodCap: 0 },
-    flags: { overtimePay: false, middleManagement: false },
+    flags: { overtimePay: false, middleManagement: false, visitedDungeon: false },
     stats: { totalClicks: 0, totalShinies: 0, highestZone: 0, totalZonesCleared: 0 },
     unlocks: {},
     introSeen: false,
@@ -1171,7 +1171,7 @@ function checkUnlocks() {
   if (u.workforce) unlock('assignMining');
   if (u.workforce && (b.mushroomFarm || 0) >= 1) unlock('assignFarming');
   if (u.workforce && (b.thinkinRock || 0) >= 1) unlock('assignThinking');
-  if (u.workforce && u.tabDungeon) unlock('assignFighting');
+  if (u.workforce && game.flags.visitedDungeon) unlock('assignFighting');
 }
 
 function tick() {
@@ -1211,6 +1211,7 @@ const UI = {
     if (unlockKey && !game.unlocks[unlockKey]) return;
 
     UI.currentTab = tab;
+    if (tab === 'dungeon') game.flags.visitedDungeon = true;
     document.querySelectorAll('.tab[role="tab"]').forEach(t => {
       t.classList.remove('active');
       t.setAttribute('aria-selected', 'false');
@@ -1734,6 +1735,8 @@ function deepMerge(target, source) {
 
 function init() {
   Game.load();
+  // Backfill for saves from before visitedDungeon flag existed
+  if (game.zone.cleared.length > 0) game.flags.visitedDungeon = true;
   _silentUnlocks = true;
   checkUnlocks();
   _silentUnlocks = false;
