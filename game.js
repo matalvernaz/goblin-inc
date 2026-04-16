@@ -752,6 +752,7 @@ const Game = {
     }
     payCost(cost);
     game.buildings[id] = lvl + 1;
+    UI._lastBuildState = ''; // force re-render
     const newLvl = lvl + 1;
     // Show story text for milestone levels, plain message otherwise
     if (bld.story && bld.story[newLvl]) {
@@ -771,6 +772,7 @@ const Game = {
     payCost(upg.cost);
     game.upgrades.push(id);
     upg.apply();
+    UI._lastResearchState = ''; // force re-render
     if (upg.story) {
       addLog(upg.story, 'story');
     } else {
@@ -1325,7 +1327,22 @@ const UI = {
       game.assignments.fighting > 0 ? `Power: ${fmt(getCombatPower())}` : '';
   },
 
+  _lastBuildState: '',
+
   renderBuildTab() {
+    // Build a state fingerprint to avoid unnecessary DOM rebuilds
+    // (Rebuilding innerHTML 15x/sec breaks click events on buttons)
+    const stateKey = Object.entries(BUILDINGS).map(([id, bld]) => {
+      const lvl = game.buildings[id] || 0;
+      const cost = getBuildingCost(id, lvl);
+      const affordable = canAfford(cost) ? 1 : 0;
+      const unlocked = (game.zone.current >= bld.unlockZone || game.zone.cleared.includes(bld.unlockZone - 1) || bld.unlockZone === 0 || lvl > 0) ? 1 : 0;
+      return `${id}:${lvl}:${affordable}:${unlocked}`;
+    }).join('|');
+
+    if (stateKey === UI._lastBuildState) return;
+    UI._lastBuildState = stateKey;
+
     const container = document.getElementById('buildings-list');
     let html = '';
     for (const [id, bld] of Object.entries(BUILDINGS)) {
@@ -1358,7 +1375,20 @@ const UI = {
     container.innerHTML = html;
   },
 
+  _lastResearchState: '',
+
   renderResearchTab() {
+    // State fingerprint to avoid innerHTML rebuild race condition
+    const stateKey = UPGRADES.map(upg => {
+      const purchased = game.upgrades.includes(upg.id) ? 1 : 0;
+      const unlocked = (game.zone.current >= upg.unlockZone || game.zone.cleared.includes(upg.unlockZone - 1) || upg.unlockZone === 0) ? 1 : 0;
+      const affordable = (!purchased && canAfford(upg.cost)) ? 1 : 0;
+      return `${upg.id}:${purchased}:${unlocked}:${affordable}`;
+    }).join('|');
+
+    if (stateKey === UI._lastResearchState) return;
+    UI._lastResearchState = stateKey;
+
     const container = document.getElementById('upgrades-list');
     let html = '';
     let anyVisible = false;
