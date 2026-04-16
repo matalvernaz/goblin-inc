@@ -484,6 +484,18 @@ const INTRO_PAGES = [
 
 const CHANGELOG = [
   {
+    version: 'v0.2 — Dungeon Overhaul',
+    date: '2026-04-15',
+    changes: [
+      'Dungeon zones now take real time to clear — no more instant victories.',
+      'New combat formula rewards investment instead of hitting hard walls.',
+      'Veteran Fighters perk now scales exponentially — prestige matters for combat.',
+      'Estimated clear time shown on dungeon tab.',
+      'Fighting assignment unlocks after recruiting 3 goblins.',
+      'Fixed keyboard shortcuts stealing button clicks from screen readers.',
+    ],
+  },
+  {
     version: 'v0.1 — Grand Opening',
     date: '2026-04-15',
     changes: [
