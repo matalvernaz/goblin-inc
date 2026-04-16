@@ -961,9 +961,9 @@ function getProductionRates() {
   let foodPS = game.assignments.farming * 0.4 * farmBonus * game.multipliers.food * globalMult;
   // Small base from building
   foodPS += farmLvl * 0.08 * game.multipliers.food * globalMult;
-  // Goblins eat food — they're hungry little things
+  // Goblins eat food — more goblins means more logistics overhead
   const totalGoblins = Math.floor(game.resources.goblins);
-  const foodConsumption = totalGoblins * 0.12;
+  const foodConsumption = totalGoblins * (0.15 + 0.005 * totalGoblins);
   const netFoodPS = foodPS - foodConsumption;
 
   const thinkLvl = game.buildings.thinkinRock || 0;
