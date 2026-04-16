@@ -484,7 +484,7 @@ const INTRO_PAGES = [
 
 const CHANGELOG = [
   {
-    version: 'v1.0.0 — Grand Opening',
+    version: 'v0.1 — Grand Opening',
     date: '2026-04-15',
     changes: [
       'Goblin Inc. is open for business! 30 zones of corporate dungeon exploration.',
@@ -1779,8 +1779,8 @@ function init() {
     if (num >= 1 && num <= 6) {
       UI.switchTab(tabList[num - 1]);
     }
-    // Space to gather
-    if (e.key === ' ' && UI.currentTab === 'gather') {
+    // Space to gather (but not when focused on a button — let buttons handle their own clicks)
+    if (e.key === ' ' && UI.currentTab === 'gather' && e.target.tagName !== 'BUTTON') {
       e.preventDefault();
       Game.gather();
     }
