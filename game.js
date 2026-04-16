@@ -994,11 +994,11 @@ function getCombatPower() {
   if (fighters <= 0) return 0;
   const trapLvl = game.buildings.trapWorkshop || 0;
   const trapBonus = 1 + 0.1 * trapLvl * game.multipliers.traps;
-  return fighters * 5 * trapBonus * game.multipliers.combat * game.multipliers.prestigeCombat;
+  return Math.pow(fighters, 0.85) * 5 * trapBonus * game.multipliers.combat * game.multipliers.prestigeCombat;
 }
 
 function getZoneStats(zoneIdx) {
-  const hp = 200 * (zoneIdx + 1) * Math.pow(1.4, zoneIdx);
+  const hp = 500 * (zoneIdx + 1) * Math.pow(1.4, zoneIdx);
   const str = 5 * Math.pow(1.35, zoneIdx);
   const reward = Math.floor(25 * Math.pow(1.6, zoneIdx));
   return { hp, str, reward };
@@ -1414,7 +1414,7 @@ const UI = {
     document.getElementById('assign-thinking-effect').textContent =
       game.assignments.thinking > 0 ? `+${fmt(game.assignments.thinking * thinkRate)}/s` : (thinkLvl > 0 ? `${fmt(thinkRate)}/s each` : 'need rock');
     document.getElementById('assign-fighting-effect').textContent =
-      game.assignments.fighting > 0 ? `Power: ${fmt(getCombatPower())}` : '5 pwr each';
+      game.assignments.fighting > 0 ? `Power: ${fmt(getCombatPower())}` : 'assign fighters';
   },
 
   _lastBuildState: '',
