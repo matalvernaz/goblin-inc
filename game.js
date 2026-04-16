@@ -474,11 +474,11 @@ const PRESTIGE_PERKS = [
 ];
 
 const INTRO_PAGES = [
-  '<p>You are a <span class="intro-emphasis">goblin</span>.</p><p>You have always been a goblin. You live in a dungeon. You have never thought about why.</p><p>None of you have. Goblins don\'t ask questions. Goblins scavenge, fight over scraps, and live in the dark. That\'s just how it is.</p>',
-  '<p>One day, in the deepest corner of a broom closet, you find a <span class="intro-emphasis">skeleton</span>.</p><p>It is wearing a very fancy suit. There is a name tag on its chest: <span class="intro-gold">Regional Manager</span>.</p><p>Wedged beneath the skeleton is a book.</p>',
-  '<p>The book is called <span class="intro-gold">"MBA For Dummies."</span></p><p>Most of the words are too long. But you understand the pictures. They show someone sitting in a big chair, telling other people what to do. Someone who <span class="intro-emphasis">chose</span> what to build. Someone with a <span class="intro-emphasis">plan</span>.</p><p>You have never had a plan before.</p>',
-  '<p>You look around the broom closet. You look at the skeleton, at the book, at the other goblins sleeping in the dark.</p><p>Something is different now. Not the dungeon. <span class="intro-emphasis">You.</span></p><p>You want to know why this place exists. You want to know what happened here. And you want to build something — something where goblins aren\'t just scavengers. Something where they <span class="intro-emphasis">choose</span> what they do.</p>',
-  '<p>You open the book to Chapter 1:</p><p><span class="intro-gold">"Step One: Acquire Capital."</span></p><p>You look at the shiny rocks on the floor.</p><p>You pick one up.</p>',
+  '<p>You are <span class="intro-emphasis">goblin</span>.</p><p>Always been goblin. Live in dungeon. Never thought about why. None of us do. Goblins don\'t think about things. We eat, we sleep, we fight over scraps in the dark.</p><p>That\'s just how it is.</p>',
+  '<p>But today, in back of broom closet, you find <span class="intro-emphasis">dead thing</span>.</p><p>Not regular dead thing. This one wearing FANCY clothes. Has little card on chest that says <span class="intro-gold">"Regional Manager."</span> Don\'t know what that means. Sounds important.</p><p>Under dead thing: a book.</p>',
+  '<p>Book is called <span class="intro-gold">"MBA For Dummies."</span></p><p>Most words too big. But PICTURES. Pictures show someone sitting in big chair, telling OTHER people what to do. Not fighting. Not scavenging. <span class="intro-emphasis">Building</span> things. Making <span class="intro-emphasis">plans</span>.</p><p>We never had a plan before. Plans are for... not-goblins.</p><p>But maybe they don\'t have to be.</p>',
+  '<p>Look around broom closet. Look at dead fancy-man. Look at other goblins sleeping in the dark. Something different now. Not dungeon — dungeon same as always.</p><p><span class="intro-emphasis">Us.</span> We are different.</p><p>Want to know why this place is here. Want to know what happened. Want to build something where goblins aren\'t just... goblins. Where we <span class="intro-emphasis">pick</span> what we do.</p><p>Book makes it sound possible.</p>',
+  '<p>Open book to Chapter 1.</p><p><span class="intro-gold">"Step One: Ack-wire Cap-it-all."</span></p><p>Don\'t know what that means. But there\'s a picture of gold coins.</p><p>We know gold coins. We call them shinies.</p><p>There are shiny rocks on the floor right here.</p><p>We pick one up.</p>',
 ];
 
 
@@ -489,35 +489,35 @@ const INTRO_PAGES = [
 // Tutorial steps - shown in order, each dismissed individually
 const TUTORIAL = [
   { id: 'welcome',
-    text: 'The book says "Step One: Acquire Capital." The shiny rocks on the ground seem like a good start.',
+    text: 'Book says "Step One: Ack-wire Cap-it-all." Big word. But there\'s a picture of gold coins. Shinies! We know shinies. Hit the rock, get shinies.',
     condition: () => true,
     done: () => game.stats.totalClicks >= 1 },
   { id: 'firstShinies',
-    text: 'That\'s the stuff. Keep gathering — the book says you need capital before you can build anything.',
+    text: 'Ooh, shiny. Book says need LOTS before can do next thing. Keep whacking.',
     condition: () => game.stats.totalClicks >= 1,
     done: () => game.unlocks.tabBuild },
   { id: 'buildMine',
-    text: 'Chapter 2: "Infrastructure." The book has a picture of a mine. Maybe it\'s time to stop hitting rocks by hand.',
+    text: 'New page in book! Has picture of hole in ground with goblins in it. "In-fra-struk-cher." Means "build stuff." We can build stuff!',
     condition: () => game.unlocks.tabBuild,
     done: () => (game.buildings.shinyMine || 0) >= 1 },
   { id: 'buildFarm',
-    text: 'The mine is doing the work for you now. But the book says "a workforce needs fuel." These mushrooms growing in the dark might be useful.',
+    text: 'Ha! Hole digs itself now! But tummy is rumbly. Mushrooms grow in the dark here... maybe if we grew them ON PURPOSE instead of just finding them?',
     condition: () => (game.buildings.shinyMine || 0) >= 1,
     done: () => (game.buildings.mushroomFarm || 0) >= 1 },
   { id: 'buildHut',
-    text: 'Chapter 3: "Human Resources." You don\'t have humans, but there are other goblins in the tunnels. Maybe they\'d come if there was a place for them.',
+    text: 'Book has chapter called "Hoo-man Ree-sore-says." No humans here. But other goblins in the tunnels! Maybe they come if we build them a not-terrible place to sleep?',
     condition: () => (game.buildings.mushroomFarm || 0) >= 1,
     done: () => (game.buildings.goblinHut || 0) >= 1 },
   { id: 'assignGoblins',
-    text: 'Your first recruits are here, blinking in the torchlight. They look at you expectantly. The book says to "allocate resources." You think it means give them something to do.',
+    text: 'GOBLINS! They\'re here! They\'re looking at us! Book says "allo-kate" them. We think that means... tell them what to do? But NICE. Ask nice.',
     condition: () => Math.floor(game.resources.goblins) >= 1,
     done: () => getTotalAssigned() >= 1 },
   { id: 'unlockDungeon',
-    text: 'The tunnels go deeper. Strange noises echo from below. The skeleton you found the book under came from somewhere down there. Time to find out where.',
+    text: 'Tunnels go deep. Weird noises down there. Skeleton-man came from down there. Part of us says don\'t go. Bigger part says... we HAVE to know.',
     condition: () => game.unlocks.tabDungeon,
     done: () => game.zone.cleared.length >= 1 },
   { id: 'keepGoing',
-    text: 'There\'s more down there. More rooms. More answers. And something carved into the wall ahead — a logo. A hand giving a thumbs up. What was this place?',
+    text: 'More rooms down there. Found something on the wall — a big hand doing a thumbs up. Old. Creepy. What WAS this place? Only one way to find out.',
     condition: () => game.zone.cleared.length >= 1,
     done: () => game.zone.cleared.length >= 3 },
 ];
@@ -1101,15 +1101,15 @@ function checkUnlocks() {
 
   // Tabs
   if (game.stats.totalClicks >= 3 || r.shinies >= 8 || Object.keys(b).length > 0)
-    unlock('tabBuild', 'You flip to the chapter on Infrastructure. "Before you can manage, you must BUILD." The Build tab is now available.');
+    unlock('tabBuild', 'Got enough shinies to make something! Book has pictures of buildings. We can DO that! Build tab ready!');
   if (r.schemes > 0 || game.upgrades.length > 0 || (b.thinkinRock || 0) >= 1)
-    unlock('tabResearch', 'Ideas are flowing. The MBA book calls this "R&D." You call it "sitting on a rock and thinking." The Research tab is now available.');
+    unlock('tabResearch', 'A goblin had a THOUGHT. Not just "hungry" or "scared" — an actual idea. Book calls this "R and D." We call it big brain time. Research tab ready!');
   if (Math.floor(r.goblins) >= 1 || z.cleared.length > 0)
-    unlock('tabDungeon', 'The tunnels stretch deeper into the dark. The book says "expand or die." You\'re not sure about the dying part, but exploring can\'t hurt. The Dungeon tab is now available.');
+    unlock('tabDungeon', 'Got goblins now. Got fighters. Tunnels go deep and dark and something is DOWN THERE. Book says "expand or die." We pick expand. Dungeon tab ready!');
   if (game.memos.length > 0 && z.cleared.length >= 1)
-    unlock('tabMemos', 'You found documents in the cleared zone. Official memos from... whatever used to operate down here. The Memos tab is now available.');
+    unlock('tabMemos', 'Found papers in the cleared zone! Old papers. Fancy writing. From whoever was here before. Can\'t read all of it but... this is important. Memos tab ready!');
   if (game.stats.highestZone >= 9)
-    unlock('tabFranchise', 'Chapter 12: "Franchising — When One Location Isn\'t Enough." You could start over in a new dungeon, carrying everything you\'ve learned. The Franchise tab is now available.');
+    unlock('tabFranchise', 'Book chapter twelve: "Fran-chize-ing." Means do the whole thing AGAIN but keep what we learned. Sounds crazy. Also sounds smart? Franchise tab ready!');
 
   // Resources
   if ((b.mushroomFarm || 0) >= 1) unlock('resFood');
