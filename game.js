@@ -430,6 +430,10 @@ function announce(msg) {
 function addLog(msg, type = '') {
   game.log.unshift({ msg, type, time: Date.now() });
   if (game.log.length > 50) game.log.length = 50;
+  // Announce important events to screen readers (not routine saves)
+  if (type === 'reward' || type === 'combat' || type === 'story' || type === 'warning') {
+    announce(msg);
+  }
 }
 
 
@@ -559,8 +563,7 @@ const Game = {
     payCost(upg.cost);
     game.upgrades.push(id);
     upg.apply();
-    addLog(`Research complete: ${upg.name}`, 'reward');
-    announce(`Research complete: ${upg.name}. ${upg.effect}`);
+    addLog(`Research complete: ${upg.name}. ${upg.effect}`, 'reward');
   },
 
   toggleFight() {
@@ -574,7 +577,6 @@ const Game = {
     }
     game.zone.fighting = true;
     addLog(`Goblins sent into Zone ${game.zone.current + 1}!`, 'combat');
-    announce(`Goblins sent into Zone ${game.zone.current + 1}`);
   },
 
   retreat() {
@@ -605,7 +607,6 @@ const Game = {
     game.prestige.perks[id] = lvl + 1;
     perk.apply(lvl + 1);
     addLog(`Perk upgraded: ${perk.name} (Level ${lvl + 1})`, 'reward');
-    announce(`Perk upgraded: ${perk.name} to level ${lvl + 1}`);
   },
 
   doPrestige() {
@@ -862,13 +863,10 @@ function tickCombat(dt) {
     game.resources.shinies += reward;
     game.stats.totalShinies += reward;
 
-    addLog(`Zone cleared: ${z.name || 'Zone ' + (game.zone.current + 1)}! +${fmt(reward)} Shinies`, 'reward');
-
     if (z.boss) {
-      addLog(`BOSS DEFEATED: ${z.bossName}!`, 'combat');
-      announce(`Boss defeated: ${z.bossName}! Zone cleared, earned ${fmt(reward)} Shinies.`);
+      addLog(`BOSS DEFEATED: ${z.bossName}! Zone cleared, +${fmt(reward)} Shinies`, 'combat');
     } else {
-      announce(`Zone cleared: ${z.name || 'Zone ' + (game.zone.current + 1)}! Earned ${fmt(reward)} Shinies.`);
+      addLog(`Zone cleared: ${z.name || 'Zone ' + (game.zone.current + 1)}! +${fmt(reward)} Shinies`, 'reward');
     }
 
     checkMemos();
@@ -925,12 +923,15 @@ const UI = {
 
   render() {
     UI.renderResources();
-    UI.renderGatherTab();
-    UI.renderBuildTab();
-    UI.renderResearchTab();
-    UI.renderDungeon();
-    UI.renderFranchise();
-    UI.renderMemos();
+    // Only render the active tab to avoid unnecessary DOM churn
+    switch (UI.currentTab) {
+      case 'gather': UI.renderGatherTab(); break;
+      case 'build': UI.renderBuildTab(); break;
+      case 'research': UI.renderResearchTab(); break;
+      case 'dungeon': UI.renderDungeon(); break;
+      case 'franchise': UI.renderFranchise(); break;
+      case 'memos': UI.renderMemos(); break;
+    }
     UI.renderLog();
     UI.updateTabStates();
   },
@@ -1193,7 +1194,12 @@ const UI = {
     container.innerHTML = html;
   },
 
+  _lastLogLength: 0,
+
   renderLog() {
+    // Only update DOM when there's a new log message
+    if (game.log.length === UI._lastLogLength) return;
+    UI._lastLogLength = game.log.length;
     const container = document.getElementById('log-messages');
     let html = '';
     for (let i = 0; i < Math.min(game.log.length, 10); i++) {
