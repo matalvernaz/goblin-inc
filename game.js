@@ -765,11 +765,13 @@ const Game = {
     const idle = getIdleGoblins();
     if (idle < 1) return;
     game.assignments[role]++;
+    announce(`${role} ${game.assignments[role]}, idle ${getIdleGoblins()}`);
   },
 
   unassign(role) {
     if (game.assignments[role] <= 0) return;
     game.assignments[role]--;
+    announce(`${role} ${game.assignments[role]}, idle ${getIdleGoblins()}`);
   },
 
   buyBuilding(id) {
