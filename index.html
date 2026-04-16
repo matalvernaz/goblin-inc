@@ -149,6 +149,11 @@
         <h2>Department of Thinking</h2>
         <p class="flavor-text">Some goblins sat on a rock and had IDEAS. This is what happens next.</p>
         <div id="upgrades-list" role="list" aria-label="Available research upgrades"></div>
+        <div id="repeatable-section" class="hidden">
+          <h3 style="margin-top: 20px">Ongoing Research</h3>
+          <p class="flavor-text">Why stop learning? Every bit helps. The rock does not mind.</p>
+          <div id="repeatable-list" role="list" aria-label="Repeatable research"></div>
+        </div>
       </section>
 
       <!-- Dungeon Tab -->
@@ -171,6 +176,7 @@
               <p id="zone-dps-row" style="display:none">DPS: <span id="zone-dps">0</span></p>
               <p id="zone-hp-row" style="display:none">Zone HP: <span id="zone-hp-current">0</span> / <span id="zone-hp-max">0</span></p>
               <p id="zone-eta-row" style="display:none">Time Left: <span id="zone-eta"></span></p>
+              <p id="zone-food-row" style="display:none">War Rations: <span id="zone-food-cost">0</span> food/s</p>
             </div>
             <div id="zone-controls">
               <button id="zone-fight-btn" onclick="Game.toggleFight()" aria-label="Send goblins to fight">Send Goblins!</button>

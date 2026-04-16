@@ -473,6 +473,44 @@ const PRESTIGE_PERKS = [
   },
 ];
 
+const REPEATABLE_UPGRADES = [
+  { id: 'processOpt', name: 'Process Oppy-mization',
+    desc: 'Watched miners work. Some swing left, some right. Made them all go same way. Somehow helps.',
+    baseCost: 50, costMult: 1.5,
+    effect: (n) => `+${((Math.pow(1.1, n) - 1) * 100).toFixed(0)}% shinies production`,
+    applySingle: () => { game.multipliers.mining *= 1.1; },
+    applyAll: (n) => { game.multipliers.mining *= Math.pow(1.1, n); },
+  },
+  { id: 'agriScience', name: 'Agri-Culch-Ural Science',
+    desc: 'Talked to mushrooms with CLIPBOARD. They respect clipboard.',
+    baseCost: 50, costMult: 1.5,
+    effect: (n) => `+${((Math.pow(1.1, n) - 1) * 100).toFixed(0)}% food production`,
+    applySingle: () => { game.multipliers.food *= 1.1; },
+    applyAll: (n) => { game.multipliers.food *= Math.pow(1.1, n); },
+  },
+  { id: 'combatDrills', name: 'Kombat Drills',
+    desc: 'Hit thing. Duck thing. Don\'t run away. Same lesson, getting better.',
+    baseCost: 75, costMult: 1.5,
+    effect: (n) => `+${((Math.pow(1.1, n) - 1) * 100).toFixed(0)}% combat power`,
+    applySingle: () => { game.multipliers.combat *= 1.1; },
+    applyAll: (n) => { game.multipliers.combat *= Math.pow(1.1, n); },
+  },
+  { id: 'goblinOutreach', name: 'Goblin Out-Reech',
+    desc: 'More signs in tunnels. "JOBS. DENTAL. SNACKS." More goblins every time.',
+    baseCost: 100, costMult: 1.8,
+    effect: (n) => `+${5 * n} max goblins`,
+    applySingle: () => { game.bonuses.maxGoblins += 5; },
+    applyAll: (n) => { game.bonuses.maxGoblins += 5 * n; },
+  },
+  { id: 'thinkDeeper', name: 'Think DEEPER',
+    desc: 'Same rock. Eyes closed this time. More ideas AND better naps.',
+    baseCost: 60, costMult: 1.5,
+    effect: (n) => `+${((Math.pow(1.1, n) - 1) * 100).toFixed(0)}% scheme production`,
+    applySingle: () => { game.multipliers.schemes *= 1.1; },
+    applyAll: (n) => { game.multipliers.schemes *= Math.pow(1.1, n); },
+  },
+];
+
 const INTRO_PAGES = [
   '<p>You are <span class="intro-emphasis">goblin</span>.</p><p>Always been goblin. Live in dungeon. Never thought about why. None of us do. Goblins don\'t think about things. We eat, we sleep, we fight over scraps in the dark.</p><p>That\'s just how it is.</p>',
   '<p>But today, in back of broom closet, you find <span class="intro-emphasis">dead thing</span>.</p><p>Not regular dead thing. This one wearing FANCY clothes. Has little card on chest that says <span class="intro-gold">"Regional Manager."</span> Don\'t know what that means. Sounds important.</p><p>Under dead thing: a book.</p>',
@@ -573,6 +611,7 @@ function defaultState() {
     bonuses: { maxGoblins: 0, foodCap: 0 },
     flags: { overtimePay: false, middleManagement: false },
     stats: { totalClicks: 0, totalShinies: 0, highestZone: 0, totalZonesCleared: 0 },
+    repeatableUpgrades: {},
     unlocks: {},
     introSeen: false,
     tutorialDismissed: [],
@@ -671,6 +710,11 @@ const Game = {
         const lvl = game.prestige.perks[perk.id] || 0;
         if (lvl > 0 && !perk.grantOnce) perk.apply(lvl);
       }
+      // Re-apply repeatable upgrades
+      for (const rup of REPEATABLE_UPGRADES) {
+        const n = game.repeatableUpgrades?.[rup.id] || 0;
+        if (n > 0) rup.applyAll(n);
+      }
       // Restore dynamic memos (prestige memos, etc.)
       if (game.dynamicMemos) {
         for (const memo of game.dynamicMemos) MEMOS.push(memo);
@@ -728,6 +772,11 @@ const Game = {
       for (const perk of PRESTIGE_PERKS) {
         const lvl = game.prestige.perks[perk.id] || 0;
         if (lvl > 0 && !perk.grantOnce) perk.apply(lvl);
+      }
+      // Re-apply repeatable upgrades
+      for (const rup of REPEATABLE_UPGRADES) {
+        const n = game.repeatableUpgrades?.[rup.id] || 0;
+        if (n > 0) rup.applyAll(n);
       }
       // Restore dynamic memos
       if (game.dynamicMemos) {
@@ -850,6 +899,22 @@ const Game = {
     } else {
       addLog(`Research complete: ${upg.name}. ${upg.effect}`, 'reward');
     }
+  },
+
+  buyRepeatable(id) {
+    const rup = REPEATABLE_UPGRADES.find(r => r.id === id);
+    if (!rup) return;
+    const count = game.repeatableUpgrades[id] || 0;
+    const cost = { schemes: Math.ceil(rup.baseCost * Math.pow(rup.costMult, count)) };
+    if (!canAfford(cost)) {
+      addLog(`Can't afford ${rup.name} yet.`, 'warning');
+      return;
+    }
+    payCost(cost);
+    game.repeatableUpgrades[id] = count + 1;
+    rup.applySingle();
+    UI._lastResearchState = '';
+    addLog(`${rup.name} Lv.${count + 1}: ${rup.effect(count + 1)}`, 'reward');
   },
 
   toggleFight() {
@@ -1006,7 +1071,14 @@ function getProductionRates() {
   foodPS += farmLvl * 0.08 * game.multipliers.food * globalMult;
   // Goblins eat food — more goblins means more logistics overhead
   const totalGoblins = Math.floor(game.resources.goblins);
-  const foodConsumption = totalGoblins * (0.15 + 0.005 * totalGoblins);
+  let foodConsumption = totalGoblins * (0.15 + 0.005 * totalGoblins);
+  // Fighters consume extra food while actively fighting (war rations)
+  let combatFoodCost = 0;
+  if (game.zone.fighting && game.assignments.fighting > 0) {
+    const zs = getZoneStats(game.zone.current);
+    combatFoodCost = game.assignments.fighting * 0.01 * zs.str;
+    foodConsumption += combatFoodCost;
+  }
   const netFoodPS = foodPS - foodConsumption;
 
   const thinkLvl = game.buildings.thinkinRock || 0;
@@ -1025,6 +1097,7 @@ function getProductionRates() {
     food: netFoodPS,
     foodGross: foodPS,
     foodConsumption,
+    combatFoodCost,
     schemes: schemesPS,
     goblins: goblinsPS,
   };
@@ -1039,7 +1112,7 @@ function getCombatPower() {
 }
 
 function getZoneStats(zoneIdx) {
-  const hp = 500 * (zoneIdx + 1) * Math.pow(1.4, zoneIdx);
+  const hp = 500 * (zoneIdx + 1) * Math.pow(1.35, zoneIdx);
   const str = 5 * Math.pow(1.35, zoneIdx);
   const reward = Math.floor(25 * Math.pow(1.6, zoneIdx));
   return { hp, str, reward };
@@ -1246,6 +1319,10 @@ function checkUnlocks() {
   if (u.workforce && (b.mushroomFarm || 0) >= 1) unlock('assignFarming');
   if (u.workforce && (b.thinkinRock || 0) >= 1) unlock('assignThinking');
   if (u.workforce && Math.floor(r.goblins) >= 3) unlock('assignFighting');
+
+  // Repeatable research unlocks after clearing 5 zones (first boss)
+  if (z.cleared.length >= 5 || game.stats.totalZonesCleared >= 5)
+    unlock('repeatableResearch', 'Goblins had BIG idea: what if research not stop? What if always MORE to learn? Ongoing Research unlocked!');
 }
 
 function tick() {
@@ -1348,6 +1425,9 @@ const UI = {
     toggle('assign-row-farming', u.assignFarming);
     toggle('assign-row-thinking', u.assignThinking);
     toggle('assign-row-fighting', u.assignFighting);
+
+    // Repeatable research section
+    toggle('repeatable-section', u.repeatableResearch);
 
     // Franchise tab locked state
     const franTab = document.getElementById('tab-franchise');
@@ -1538,7 +1618,7 @@ const UI = {
 
   renderResearchTab() {
     // State fingerprint to avoid innerHTML rebuild race condition
-    const stateKey = UPGRADES.map(upg => {
+    const oneTimeKey = UPGRADES.map(upg => {
       const purchased = game.upgrades.includes(upg.id) ? 1 : 0;
       const unlocked = (game.zone.current >= upg.unlockZone || game.zone.cleared.includes(upg.unlockZone - 1) || upg.unlockZone === 0) ? 1 : 0;
       // Track per-resource affordability so cost colors update granularly
@@ -1546,6 +1626,13 @@ const UI = {
         ((game.resources[res] || 0) >= amt) ? 1 : 0).join('') : '';
       return `${upg.id}:${purchased}:${unlocked}:${costKey}`;
     }).join('|');
+    const repKey = REPEATABLE_UPGRADES.map(rup => {
+      const count = game.repeatableUpgrades[rup.id] || 0;
+      const cost = Math.ceil(rup.baseCost * Math.pow(rup.costMult, count));
+      const afford = (game.resources.schemes || 0) >= cost ? 1 : 0;
+      return `${rup.id}:${count}:${afford}`;
+    }).join('|');
+    const stateKey = oneTimeKey + '||' + repKey + (game.unlocks.repeatableResearch ? ':1' : ':0');
 
     if (stateKey === UI._lastResearchState) return;
     UI._lastResearchState = stateKey;
@@ -1592,6 +1679,34 @@ const UI = {
       html = '<p class="flavor-text">No research available yet. Explore more dungeon zones to find inspiration.</p>';
     }
     container.innerHTML = html;
+
+    // Repeatable upgrades
+    const repContainer = document.getElementById('repeatable-list');
+    if (!game.unlocks.repeatableResearch) {
+      repContainer.innerHTML = '';
+    } else {
+      let repHtml = '';
+      for (const rup of REPEATABLE_UPGRADES) {
+        const count = game.repeatableUpgrades[rup.id] || 0;
+        const cost = Math.ceil(rup.baseCost * Math.pow(rup.costMult, count));
+        const affordable = (game.resources.schemes || 0) >= cost;
+        repHtml += `<div class="upgrade-card" role="listitem">
+          <div class="upgrade-info">
+            <span class="upgrade-name">${rup.name}<span class="building-level">Lv.${count}</span></span>
+            <div class="upgrade-desc">${rup.desc}</div>
+            <div class="building-effect">${rup.effect(count + 1)}</div>
+          </div>
+          <div class="building-buy">
+            <button class="buy-btn ${affordable ? '' : 'btn-unaffordable'}" onclick="Game.buyRepeatable('${rup.id}')"
+              aria-label="${affordable ? 'Research' : 'Cannot afford'} ${rup.name} level ${count + 1}, costs ${fmt(cost)} Schemes">
+              ${affordable ? 'Research' : 'Can\'t Afford'}
+            </button>
+            <div class="building-cost"><span class="${affordable ? 'cost-affordable' : 'cost-expensive'}">${fmt(cost)} Schemes</span></div>
+          </div>
+        </div>`;
+      }
+      repContainer.innerHTML = repHtml;
+    }
   },
 
   renderDungeon() {
@@ -1628,10 +1743,21 @@ const UI = {
       else if (secs < 3600) etaEl.textContent = `${Math.ceil(secs / 60)}m`;
       else etaEl.textContent = `${(secs / 3600).toFixed(1)}h`;
       etaRow.style.display = '';
+
+      // Combat food cost
+      const foodRow = document.getElementById('zone-food-row');
+      if (game.zone.fighting) {
+        const combatFood = game.assignments.fighting * 0.01 * zs.str;
+        document.getElementById('zone-food-cost').textContent = fmt(combatFood);
+        foodRow.style.display = '';
+      } else {
+        foodRow.style.display = 'none';
+      }
     } else {
       dpsRow.style.display = 'none';
       hpRow.style.display = 'none';
       etaRow.style.display = 'none';
+      document.getElementById('zone-food-row').style.display = 'none';
     }
 
     const progress = Math.min(game.zone.progress, 100);
