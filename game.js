@@ -15,6 +15,12 @@ const BUILDINGS = {
     costMult: 1.15,
     effect: (lvl) => `+${fmt(0.5 * lvl)} Shinies/s`,
     unlockZone: 0,
+    story: {
+      1: 'Your first goblin picks up a rusty pickaxe and squints at the rock face. "So we just... hit it?" Yes. Welcome to the economy.',
+      3: 'The mine is getting deeper. You can hear the goblins singing down there. It\'s not a good song, but it\'s THEIR song.',
+      5: 'A goblin named Grik carved "DEPARTMENT OF HITTING ROCKS" above the entrance. You didn\'t tell him to. He just... wanted to.',
+      10: 'The mine has shifts now. A schedule on the wall. Nobody enforced it — the goblins organized themselves. The MBA book didn\'t cover this.',
+    },
   },
   goblinHut: {
     name: 'Goblin Hut',
@@ -23,6 +29,12 @@ const BUILDINGS = {
     costMult: 1.18,
     effect: (lvl) => `+${5 * lvl} max goblins, +${fmt(0.15 * lvl)} goblins/s`,
     unlockZone: 0,
+    story: {
+      1: 'The first hut is four sticks and a stolen tablecloth. A small goblin peers out from inside and waves. You have your first recruit.',
+      3: 'More goblins are arriving. Word is spreading through the tunnels: there\'s a place where goblins have JOBS. Actual, chosen jobs. Not "run from the hero" jobs.',
+      5: 'A goblin family moved in today. They brought a potted mushroom as a housewarming gift. It\'s the most civilized thing that\'s ever happened down here.',
+      10: 'The huts have a neighborhood now. Someone built a tiny park. There\'s a bench made from a broken shield. This is becoming something real.',
+    },
   },
   mushroomFarm: {
     name: 'Mushroom Farm',
@@ -31,6 +43,12 @@ const BUILDINGS = {
     costMult: 1.15,
     effect: (lvl) => `+${fmt(0.4 * lvl)} Food/s, +${30 * lvl} food cap`,
     unlockZone: 0,
+    story: {
+      1: 'The mushrooms grow fast in the dark. They taste like dirt and sadness, but they\'re OURS. First rule of business: feed your people.',
+      3: 'A goblin discovered that if you talk to the mushrooms, they grow bigger. Nobody questions this. We have a Mushroom Whisperer now.',
+      5: 'The farm has varieties now. Brown ones, gray ones, and the "special" purple ones that make you see the future. (The future is more mushrooms.)',
+      10: 'The old company fed its workers nutrient paste through tubes. We have a FARM. With actual FARMERS who chose to be farmers. It\'s completely different.',
+    },
   },
   thinkinRock: {
     name: "Thinkin' Rock",
@@ -39,6 +57,12 @@ const BUILDINGS = {
     costMult: 1.20,
     effect: (lvl) => `+${fmt(0.15 * lvl)} Schemes/s`,
     unlockZone: 2,
+    story: {
+      1: 'A goblin sat on a flat rock and stared at nothing for an hour. Then she said: "What if pickaxes, but SHARPER?" The Department of Thinking is born.',
+      3: 'There\'s a waiting list for the Thinkin\' Rock now. Goblins sit in a queue, fidgeting. "No cutting," says the sign. This is how civilizations start.',
+      5: 'The thinkers have started writing things down. On walls, on rocks, on each other. Ideas everywhere. The old company suppressed thinking. We FUND it.',
+      10: 'A goblin philosopher has appeared. She sits on the rock and asks questions like "What IS a shiny?" We\'re not ready for this but we\'re proud.',
+    },
   },
   trapWorkshop: {
     name: 'Trap Workshop',
@@ -47,6 +71,11 @@ const BUILDINGS = {
     costMult: 1.25,
     effect: (lvl) => `+${10 * lvl}% combat power`,
     unlockZone: 4,
+    story: {
+      1: 'The first trap is a hole with a blanket over it. It catches three goblins before catching its first intruder. Learning curve.',
+      3: 'The traps are getting creative. Spring-loaded doors, trip wires, a bucket that falls on your head and plays a rude song. The engineers are having FUN.',
+      5: 'The workshop has a motto now: "We Break Things So Things Don\'t Break Us." It\'s carved into the door. Nobody asked them to do this.',
+    },
   },
   tradingPost: {
     name: 'Trading Post',
@@ -55,6 +84,11 @@ const BUILDINGS = {
     costMult: 1.30,
     effect: (lvl) => `+${5 * lvl}% all production`,
     unlockZone: 7,
+    story: {
+      1: 'A goblin hung a sign outside a tunnel entrance: "OPEN FOR BUSINESS." A confused merchant wandered in, traded some supplies for shinies, and left alive. Unprecedented.',
+      3: 'We have regular traders now. They used to be afraid of us. Now they\'re afraid of our PRICES. Progress.',
+      5: 'The trading post has a reputation. Other dungeons are asking how we did it. How do you get humans to trade with goblins? You give them a reason to come back.',
+    },
   },
 };
 
@@ -67,6 +101,7 @@ const UPGRADES = [
     effect: 'Double Shiny Mine production',
     unlockZone: 1,
     apply: () => { game.multipliers.mining *= 2; },
+    story: 'A goblin stared at a pickaxe for three days and then said: "What if the end was pointier?" Everyone acted like this was obvious, but nobody had SAID it before. That\'s what thinking gets you.',
   },
   {
     id: 'biggerPockets',
@@ -76,6 +111,7 @@ const UPGRADES = [
     effect: '2x click power',
     unlockZone: 1,
     apply: () => { game.multipliers.click *= 2; },
+    story: 'The tailor goblin (self-appointed) sewed bigger pockets into everyone\'s trousers. "Carry more, worry less," she said. First company perk.',
   },
   {
     id: 'mushroomSeasoning',
@@ -85,6 +121,7 @@ const UPGRADES = [
     effect: '2x food production',
     unlockZone: 2,
     apply: () => { game.multipliers.food *= 2; },
+    story: 'The cook threw some cave moss on the mushrooms and called it "seasoning." It tastes like dirt, but FANCY dirt. Morale has improved. Turns out food you ENJOY eating is different from food you eat to survive.',
   },
   {
     id: 'thinkHarder',
@@ -94,6 +131,7 @@ const UPGRADES = [
     effect: '2x scheme production',
     unlockZone: 3,
     apply: () => { game.multipliers.schemes *= 2; },
+    story: 'Nobody told the thinkers to think harder. The sign was meant as a joke. But they took it seriously, and the ideas doubled. Goblins, it turns out, WANT to solve problems. They just needed someone to say it was allowed.',
   },
   {
     id: 'motivationalPosters',
@@ -103,6 +141,7 @@ const UPGRADES = [
     effect: '+50% all production',
     unlockZone: 3,
     apply: () => { game.multipliers.global *= 1.5; },
+    story: 'The posters were drawn by a goblin who can\'t spell. "BELEEV IN YURSELF" is on every wall. The old company had posters too: "PRODUCTIVITY IS FREEDOM." The difference? Ours were made by someone who cared.',
   },
   {
     id: 'betterTraps',
@@ -112,6 +151,7 @@ const UPGRADES = [
     effect: '2x trap effectiveness',
     unlockZone: 5,
     apply: () => { game.multipliers.traps *= 2; },
+    story: 'The trap engineers held their first safety review. "We used to test traps by walking into them," said the lead engineer, pointing at her missing ear. "Now we use a watermelon." This is called progress.',
   },
   {
     id: 'goblinDaycare',
@@ -121,6 +161,7 @@ const UPGRADES = [
     effect: '2x goblin production rate',
     unlockZone: 4,
     apply: () => { game.multipliers.goblinProd *= 2; },
+    story: 'The daycare goblin reads stories to the little ones about brave goblins who build things and choose their own names. In the old company, goblin children went straight to the work floor. Not here. Here they get to be small first.',
   },
   {
     id: 'corporateRetreat',
@@ -130,6 +171,7 @@ const UPGRADES = [
     effect: '2x all production',
     unlockZone: 6,
     apply: () => { game.multipliers.global *= 2; },
+    story: 'We held a retreat in a cleared-out cavern. There were trust falls (into piles of mushrooms), team-building exercises (building a very small bridge), and one goblin did a presentation about feelings. Nobody laughed. We\'re growing up.',
   },
   {
     id: 'advancedMetallurgy',
@@ -139,6 +181,7 @@ const UPGRADES = [
     effect: '3x Shiny Mine production',
     unlockZone: 8,
     apply: () => { game.multipliers.mining *= 3; },
+    story: 'The metallurgists melted down gold and reformed it. Same amount, but they understand it now. Knowledge isn\'t about having more — it\'s about understanding what you already have. (Also the reformed gold is slightly shinier. That matters to goblins.)',
   },
   {
     id: 'battleFormations',
@@ -148,6 +191,7 @@ const UPGRADES = [
     effect: '+50% combat power',
     unlockZone: 5,
     apply: () => { game.multipliers.combat *= 1.5; },
+    story: 'Sir Reginald taught the goblins to stand in a line and not run away. "That\'s it?" they asked. "That\'s 90% of combat," he said. "The other 10% is wanting something worth fighting for."',
   },
   {
     id: 'overtimePay',
@@ -157,6 +201,7 @@ const UPGRADES = [
     effect: 'Each click also gives 10% of per-second production',
     unlockZone: 7,
     apply: () => { game.flags.overtimePay = true; },
+    story: 'A goblin worked late and found extra shinies in her pay pile the next morning. She hadn\'t been told to work late. She CHOSE to. Paying goblins for choosing to give extra? The old company would never. That\'s why they\'re bones.',
   },
   {
     id: 'middleManagement',
@@ -166,6 +211,7 @@ const UPGRADES = [
     effect: 'Idle goblins produce 0.2 Shinies/s each',
     unlockZone: 8,
     apply: () => { game.flags.middleManagement = true; },
+    story: 'Even the goblins with no assignment are finding little things to do. Tidying. Organizing. Carrying things from one pile to another slightly better pile. Nobody told them to. Turns out when you treat people well, they WANT to contribute.',
   },
   {
     id: 'eliteSoldiers',
@@ -175,6 +221,7 @@ const UPGRADES = [
     effect: '2x combat power',
     unlockZone: 10,
     apply: () => { game.multipliers.combat *= 2; },
+    story: 'The elite squad volunteered. Every one of them. Sir Reginald asked why and the biggest goblin said: "Because this place is ours and I don\'t want anyone to take it." He used to scavenge alone in the dark. Now he has something to protect.',
   },
   {
     id: 'quantumMushrooms',
@@ -184,6 +231,7 @@ const UPGRADES = [
     effect: '3x food production',
     unlockZone: 12,
     apply: () => { game.multipliers.food *= 3; },
+    story: 'The purple mushrooms from the lower farms do something strange — they exist in two places at once. The philosopher goblin says this means "reality is a suggestion." The farmer goblin says "we have twice as many mushrooms now." Both are right.',
   },
   {
     id: 'synergisticSynergies',
@@ -193,6 +241,7 @@ const UPGRADES = [
     effect: '3x all production',
     unlockZone: 15,
     apply: () => { game.multipliers.global *= 3; },
+    story: 'Every department sat together for the first time. Miners talked to farmers. Thinkers talked to fighters. The cook talked to everyone. By the end, every team had ideas from every other team. Synergy is a stupid word, but the IDEA — that we\'re stronger connected — is real.',
   },
   {
     id: 'clickEmpowerment',
@@ -202,6 +251,7 @@ const UPGRADES = [
     effect: '5x click power',
     unlockZone: 14,
     apply: () => { game.multipliers.click *= 5; },
+    story: 'You held a seminar about the value of direct action. "Sometimes you just have to hit the rock yourself," you said. The goblins nodded. Leadership isn\'t about delegating everything. It\'s about showing you\'re willing to get your hands dirty.',
   },
   {
     id: 'goblinCloning',
@@ -211,6 +261,7 @@ const UPGRADES = [
     effect: '3x goblin production, +20 max goblins',
     unlockZone: 13,
     apply: () => { game.multipliers.goblinProd *= 3; game.bonuses.maxGoblins += 20; },
+    story: 'Cynthia reviewed the ethics. "It\'s not cloning," she said, "it\'s... fast growing. Like the mushrooms." The new goblins wake up confused but curious. We give them a day to pick their own name before anything else. The old company gave its workers numbers.',
   },
   {
     id: 'siegeEngines',
@@ -220,6 +271,7 @@ const UPGRADES = [
     effect: '3x combat power',
     unlockZone: 16,
     apply: () => { game.multipliers.combat *= 3; },
+    story: 'The engineers outdid themselves. A giant crossbow on wheels — pointing outward, into the deeper dungeon. "We\'re not defending anymore," said Sir Reginald. "We\'re going to find out what\'s at the bottom of this place."',
   },
   {
     id: 'infiniteMushrooms',
@@ -229,6 +281,7 @@ const UPGRADES = [
     effect: '5x food production',
     unlockZone: 18,
     apply: () => { game.multipliers.food *= 5; },
+    story: 'The philosopher goblin and the mushroom whisperer locked themselves in a cave for a week. When they emerged, the mushrooms were growing five times faster and the philosopher had a new theory: "Everything is connected underground. Mushrooms know this. We\'re just catching up."',
   },
   {
     id: 'corporateAscension',
@@ -238,6 +291,7 @@ const UPGRADES = [
     effect: '5x all production',
     unlockZone: 20,
     apply: () => { game.multipliers.global *= 5; },
+    story: 'You finished the book. Every chapter, every footnote, every index entry. And you realized something: the book isn\'t about business. It\'s about ORGANIZING PEOPLE. The difference between the old company and Goblin Inc. isn\'t the tools or the mushrooms. It\'s that we read the book and chose to do it differently.',
   },
 ];
 
@@ -698,7 +752,13 @@ const Game = {
     }
     payCost(cost);
     game.buildings[id] = lvl + 1;
-    addLog(`Built ${bld.name} (Lv.${lvl + 1})!`, 'reward');
+    const newLvl = lvl + 1;
+    // Show story text for milestone levels, plain message otherwise
+    if (bld.story && bld.story[newLvl]) {
+      addLog(bld.story[newLvl], 'story');
+    } else {
+      addLog(`${bld.name} upgraded to Lv.${newLvl}.`, 'reward');
+    }
   },
 
   buyUpgrade(id) {
@@ -711,7 +771,11 @@ const Game = {
     payCost(upg.cost);
     game.upgrades.push(id);
     upg.apply();
-    addLog(`Research complete: ${upg.name}. ${upg.effect}`, 'reward');
+    if (upg.story) {
+      addLog(upg.story, 'story');
+    } else {
+      addLog(`Research complete: ${upg.name}. ${upg.effect}`, 'reward');
+    }
   },
 
   toggleFight() {
@@ -1037,15 +1101,15 @@ function checkUnlocks() {
 
   // Tabs
   if (game.stats.totalClicks >= 3 || r.shinies >= 8 || Object.keys(b).length > 0)
-    unlock('tabBuild', 'New tab unlocked: Build!');
+    unlock('tabBuild', 'You flip to the chapter on Infrastructure. "Before you can manage, you must BUILD." The Build tab is now available.');
   if (r.schemes > 0 || game.upgrades.length > 0 || (b.thinkinRock || 0) >= 1)
-    unlock('tabResearch', 'New tab unlocked: Research!');
+    unlock('tabResearch', 'Ideas are flowing. The MBA book calls this "R&D." You call it "sitting on a rock and thinking." The Research tab is now available.');
   if (Math.floor(r.goblins) >= 1 || z.cleared.length > 0)
-    unlock('tabDungeon', 'New tab unlocked: Dungeon!');
+    unlock('tabDungeon', 'The tunnels stretch deeper into the dark. The book says "expand or die." You\'re not sure about the dying part, but exploring can\'t hurt. The Dungeon tab is now available.');
   if (game.memos.length > 0)
     unlock('tabMemos');
   if (game.stats.highestZone >= 9)
-    unlock('tabFranchise', 'New tab unlocked: Franchise!');
+    unlock('tabFranchise', 'Chapter 12: "Franchising — When One Location Isn\'t Enough." You could start over in a new dungeon, carrying everything you\'ve learned. The Franchise tab is now available.');
 
   // Resources
   if ((b.mushroomFarm || 0) >= 1) unlock('resFood');
