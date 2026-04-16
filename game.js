@@ -242,95 +242,148 @@ const UPGRADES = [
 ];
 
 const ZONES = [
+  // Act 1: The Awakening
   { name: 'The Broom Closet', boss: false,
-    desc: 'Every empire starts somewhere. Ours starts next to a mop and a bucket of questionable liquid.' },
+    desc: 'A skeleton in a fancy suit sits slumped against the wall. A book lies open in its lap. This is where it all begins.' },
   { name: 'Supply Closet B', boss: false,
-    desc: 'Discovered additional closet space. Productivity has increased since goblins now have somewhere to hide from responsibility.' },
+    desc: 'Pre-built shelves. Labeled containers. Someone designed this place. The dust is centuries old, but the architecture is deliberate.' },
   { name: 'The Break Room', boss: false,
-    desc: 'Ancient texts call it "The Room of Breaks." We found a coffee machine. Nobody knows what coffee is, but it smells like ambition.' },
+    desc: 'A bulletin board with old notices. A coffee machine that still hums. Claw marks on the walls behind the furniture.' },
   { name: 'The Filing Cavern', boss: false,
-    desc: 'Thousands of documents in here. Mostly just the word "AAAGH" written in different handwriting.' },
+    desc: 'Personnel files for thousands of employees. The termination dates accelerate toward the end. The last file just says "EVERYONE."' },
   { name: 'The Lobby', boss: true, bossName: 'Kevin the Intern',
-    desc: 'This used to be the heroes\' entrance. We\'ve rebranded it as "Reception." Kevin the Intern guards it. He\'s not a real adventurer — his mom made him apply.' },
+    desc: 'The old main entrance. A young human in a kitchen-pot helmet guards it with a wooden sword and a crumpled acceptance letter from the Heroes\' Guild.' },
+  // Act 2: The Old Company
   { name: 'The Abandoned Laboratory', boss: false,
-    desc: 'Someone was trying to turn lead into gold. We turn gold into more gold. Who\'s the real alchemist here?' },
+    desc: 'Research notes on "Productivity Enhancement Through Biological Restructuring." The creatures in the dungeon aren\'t monsters. They\'re former employees.' },
   { name: 'The Marketing Pit', boss: false,
-    desc: 'A bottomless pit with great lighting. Perfect for presentations. Several interns have been lost during brainstorming sessions.' },
+    desc: 'A bottomless pit with company slogans carved into every surface. "YOUR VALUE IS YOUR OUTPUT." The echoes never stop.' },
   { name: 'The Server Room', boss: false,
-    desc: 'Crystal balls, all linked together. Ancient networking infrastructure. The Wi-Fi password is "dragon123."' },
+    desc: 'Crystal balls showing recorded company meetings. A giant floating hand addresses rows of terrified goblins. The old company was run by goblins, too.' },
   { name: 'The HR Swamp', boss: false,
-    desc: 'Nobody wants to go to HR. Not even HR. The swamp gas is technically a "workplace atmosphere concern."' },
+    desc: 'The original company charter lies preserved in the muck. Mission: "To maximize value extraction from all available resources, including hope and identity."' },
   { name: 'The Corner Office', boss: true, bossName: 'Sir Reginald the Adequate',
-    desc: 'The fanciest room we\'ve found yet. Sir Reginald the Adequate has been squatting here. He has a magic sword that glows near overtime hours.' },
+    desc: 'A real hero, sent by the Guild with real armor and real questions. He has a magic sword that glows near overtime hours.' },
+  // Act 3: Growing Pains
   { name: 'The Competitor\'s Tunnel', boss: false,
-    desc: 'Discovered a tunnel to the dungeon next door. They have CARPET. This aggression will not stand.' },
+    desc: 'A tunnel to a rival dungeon. Their goblins wear ties and work in silence. Their eyes are glassy. This is a different kind of danger.' },
   { name: 'The Vending Machine Alcove', boss: false,
-    desc: 'A magical box that dispenses food in exchange for Shinies. The food is always slightly wrong. We love it.' },
+    desc: 'An interface terminal disguised as a food machine. It contains records of thousands of goblin workers across generations. None had names. Only numbers.' },
   { name: 'The Conference Abyss', boss: false,
-    desc: 'A meeting room that exists outside normal space-time. Meetings scheduled here have no start and no end. Only agendas.' },
+    desc: 'Kevin asked how we know we won\'t become like the old company. The question echoes in this room that has no walls, only agendas.' },
   { name: 'The Archives of Bad Ideas', boss: false,
-    desc: 'Filing cabinets full of rejected proposals. "Lava moat in the break room." "Mandatory fun Fridays." "Hire a dragon as CFO." Wait, that last one...' },
+    desc: 'Rejected proposals from the old company. One, marked REJECTED in angry red, suggested letting employees choose their own tasks. Filed by Employee #1.' },
   { name: 'The Rival\'s Boardroom', boss: true, bossName: 'Chad Thornington III, MBA',
-    desc: 'Chad runs the neighboring dungeon like a startup. He says things like "disrupt" and "pivot." He must be stopped.' },
-  { name: 'The Underground Stock Exchange', boss: false,
-    desc: 'Literally a market made of wooden stocks. Goblins trade rocks they\'ve named after companies. SHRK is up 40%.' },
+    desc: 'Chad\'s goblins don\'t fight for him. They fight because they don\'t know they can stop. Not for long.' },
+  // Act 4: The Deeper Dungeon
+  { name: 'The Sealed Floors', boss: false,
+    desc: '"4TH SUB-BASEMENT — OFF LIMITS PER CORPORATE." The creatures here wear lab coats. The scientists were restructured too.' },
   { name: 'The Legal Department', boss: false,
-    desc: 'A cave full of tiny goblins in tiny suits arguing about whether "finders keepers" constitutes legal precedent. (It does.)' },
+    desc: 'Cynthia\'s filing cabinets contain Guild Law precedent. Goblins are classified as "Dungeon Resources." Not for much longer.' },
   { name: 'The Innovation Sinkhole', boss: false,
-    desc: 'Someone suggested an "innovation lab." It\'s a hole. Things fall in. Sometimes those things come back better. Usually not.' },
+    desc: 'A hole where ideas were thrown to be forgotten. Some of them survived. Some of them were Employee #1\'s.' },
   { name: 'The Accounting Labyrinth', boss: false,
-    desc: 'Numbers go in, different numbers come out. Nobody questions it. The quarterly reports show we\'re profitable in at least three dimensions.' },
+    desc: 'Walls shift to trap you. The numbers tell the story: profits up, humanity down. The restructuring wasn\'t a side effect. It was the business model.' },
   { name: 'The Dragon\'s Office', boss: true, bossName: 'Cynthia, Dragon Lawyer',
-    desc: 'Cynthia passed the bar in seven kingdoms. She breathes fire AND legal jargon. Her billable rate is "all your treasure." She\'s been retained by the heroes\' guild.' },
+    desc: 'She passed the bar in seven kingdoms. She represents the Heroes\' Guild. But she\'s never seen a company where employees are happy. Not until now.' },
+  // Act 5: The Revelation
   { name: 'The IPO Cavern', boss: false,
-    desc: 'We\'re going public! Every goblin gets one share. Most immediately ate theirs. Investor confidence is... a concept we\'re learning about.' },
+    desc: 'Every goblin got one share. One vote. The value of Goblin Inc. isn\'t measured in gold.' },
   { name: 'The Shareholder Gulch', boss: false,
-    desc: 'The shareholder goblins keep asking about "dividends." We told them it\'s a type of mushroom. They seem satisfied.' },
+    desc: 'A canyon carved by water that flows upward. The old company\'s growth charts are etched into the walls. They all end at a cliff.' },
   { name: 'The Interdimensional Loading Dock', boss: false,
-    desc: 'A portal ripped open in storage. Other-dimensional packages keep arriving. The return labels say "Reality #4,207." We\'re signing for them.' },
+    desc: 'Portals to other dungeons. In some of them, the old company is still running. In some of them, nobody ever found the book.' },
   { name: 'The Cosmic Break Room', boss: false,
-    desc: 'The break room from another dimension. Their coffee machine works. THIS CHANGES EVERYTHING.' },
-  { name: 'The Multiverse Branch Office', boss: true, bossName: 'Your Evil Twin (Better Dressed)',
-    desc: 'An alternate-universe version of you runs this dungeon. They have a goatee, a corner office, and a dental plan. Unforgivable.' },
-  { name: 'The Space Between Spreadsheets', boss: false,
-    desc: 'A dimension that exists between cells of a cosmic spreadsheet. Row 47, Column G. The formula in this cell is just screaming.' },
+    desc: 'An alternate break room. Their coffee machine works. Their goblins are free. Proof that this can work anywhere.' },
+  { name: 'The Multiverse Branch Office', boss: true, bossName: 'Your Other Self',
+    desc: 'An alternate you who found a different book: "Ruthless Leadership." Their Goblin Inc. is efficient, profitable, and completely hollow.' },
+  // Act 6: The Bottom
+  { name: 'The Living Corridors', boss: false,
+    desc: 'The dungeon stops looking like a building. It looks like a body. Corridors like veins. Rooms like organs. The walls pulse.' },
   { name: 'The Celestial Mailroom', boss: false,
-    desc: 'Where interdimensional memos go to die. Found a complaint letter from God addressed to "Current Resident." Filed it under "Later."' },
-  { name: 'The Board of Cosmic Directors', boss: false,
-    desc: 'Turns out the universe has a board of directors. They\'ve been in a meeting since the Big Bang. The PowerPoint has 900 billion slides.' },
-  { name: 'The Universal HR Department', boss: false,
-    desc: 'Every HR complaint from every dimension, ever. Apparently, stars keep filing harassment claims against black holes. Valid.' },
-  { name: 'The CEO\'s Throne Room', boss: true, bossName: 'The Concept of Capitalism Itself',
-    desc: 'At the top of everything sits The Invisible Hand — the abstract personification of free markets. It\'s just a giant floating hand giving a thumbs up. It has a corner office the size of a nebula.' },
+    desc: 'Billions of letters to The Hand from every reality. "Targets met. Awaiting instructions." The Hand never wrote back. Not once.' },
+  { name: 'The Universal Board Room', boss: false,
+    desc: 'Logos of every company from every dimension line the walls. All of them are The Hand. The same pattern, replicating endlessly.' },
+  { name: 'The Empty Chair', boss: false,
+    desc: 'The CEO seat. It has always been empty. The Hand was never a being. It was an idea that convinced everyone someone at the top had a plan.' },
+  { name: 'The Heart of the Company', boss: true, bossName: 'The Invisible Hand',
+    desc: 'Not a creature. Not a god. Just the accumulated weight of every decision that chose efficiency over dignity. And one hundred goblins who chose to be here.' },
 ];
 
 const MEMOS = [
+  // --- ACT 1: THE AWAKENING (Zones 0-5) ---
+  // You're a goblin who found a book. But WHY was the book here?
   { zone: 0, type: 'story', title: 'RE: NEW MANAGEMENT',
-    body: 'MEMO TO: All Goblins\nFROM: You (Self-Appointed Chief Executive Goblin)\n\nFound a book in the treasure pile called "MBA For Dummies." We\'re going corporate. No more mindless hoarding — we\'re going to STRATEGICALLY hoard.\n\nFirst order of business: find more shinies. Click the big rock.\n\nThis is not optional.' },
-  { zone: 1, type: 'story', title: 'RE: EXPANSION UPDATE',
-    body: 'We\'ve moved beyond the broom closet. Critics said it couldn\'t be done. Those critics were the mop.\n\nNew territory means new opportunities. I\'ve appointed myself Head of Expansion. And also Head of Everything Else.' },
-  { zone: 3, type: 'story', title: 'RE: THE FILING SITUATION',
-    body: 'Found thousands of documents in the new cavern. We can\'t read most of them, but we\'ve started our own filing system:\n\n- Pile A: Things that look important\n- Pile B: Things that look flammable\n- Pile C: Same as Pile B\n\nUpdate: Piles B and C have merged. In a sense.' },
-  { zone: 5, type: 'boss', title: 'INCIDENT REPORT: KEVIN',
-    body: 'A "hero" named Kevin tried to raid us. He was wearing his mom\'s kitchen pot as a helmet. His sword was wooden.\n\nWe offered him a job. He accepted. He\'s in charge of the suggestion box now.\n\nMost suggestions are from Kevin. They are all about getting a real sword.' },
-  { zone: 7, type: 'story', title: 'RE: DISCOVERY - ANCIENT NETWORKING',
-    body: 'The "Server Room" contains crystal balls connected by copper wire. We think it\'s the ancient equivalent of the internet.\n\nSo far we\'ve found:\n- A crystal ball showing a cat falling off a shelf (extremely funny)\n- A crystal ball that just says "YOUR POTION ORDER HAS SHIPPED"\n- A crystal ball full of very angry opinions about everything\n\nSome things are universal.' },
-  { zone: 10, type: 'boss', title: 'DEFEAT OF SIR REGINALD',
-    body: 'Sir Reginald the Adequate has been defeated. He was exactly as adequate as his name suggested.\n\nHis magic sword is now our letter opener. His shield is now a serving tray. His cape is now a tablecloth.\n\nMore importantly: his "corner office" has a VIEW. Of more dungeon. But still. A VIEW.\n\nNew opportunity unlocked: FRANCHISING. We can now spread the Goblin Inc. brand to fresh dungeons!' },
+    body: 'MEMO TO: All Goblins\nFROM: You (Self-Appointed Chief Executive Goblin)\n\nI found a book. It was wedged under a skeleton wearing very fancy clothes. The skeleton had a name tag: "Regional Manager."\n\nThe book is called "MBA For Dummies." Most of the words are too long, but I understood the pictures. They show someone telling OTHER people what to do while sitting in a big chair.\n\nI want to be the one in the big chair.\n\nWe\'re going corporate. No more mindless hoarding — we\'re going to STRATEGICALLY hoard. First order of business: find more shinies.\n\nP.S. Nobody touch the skeleton. He\'s our first employee. Posthumously.' },
+  { zone: 1, type: 'story', title: 'RE: WHO BUILT THIS PLACE?',
+    body: 'Expanding into the Supply Closet, I noticed something odd. These aren\'t natural caves. Someone BUILT this dungeon. There are doorframes. Light fixtures (broken). A sign that says "FLOOR 1 — ORIENTATION."\n\nOrientation for WHAT?\n\nAlso found more skeletons. They\'re all wearing the same uniform. Little embroidered logo on the chest — a hand giving a thumbs up. Creepy.\n\nWhatever company used to operate here, they\'re gone. We\'re the management now.' },
+  { zone: 2, type: 'story', title: 'RE: THE BREAK ROOM DISCOVERY',
+    body: 'The Break Room had a bulletin board. Under layers of dust, there were notices:\n\n"MANDATORY FUN FRIDAY — ALL EMPLOYEES MUST ATTEND"\n"REMINDER: The 4th Sub-Basement is OFF LIMITS per Corporate"\n"Q3 PRODUCTIVITY DOWN 200% — SEE ATTACHED RE: CONSEQUENCES"\n\nThe "consequences" memo was torn off. There were claw marks on the wall behind the board.\n\nAlso found a coffee machine. It still works somehow. Nobody knows what coffee is, but it smells like ambition mixed with desperation. Very corporate.' },
+  { zone: 3, type: 'story', title: 'RE: THE FILING CAVERN',
+    body: 'Thousands of documents. Personnel files. We can\'t read most of them — the language is old and strange — but our best reader (Grik, who once ate a dictionary) translated some:\n\n"Employee #4,207 — Terminated. Reason: Asking Questions."\n"Employee #4,208 — Terminated. Reason: Not Asking Questions."\n"Employee #4,209 — Terminated. Reason: Looked at Employee #4,207."\n\nThe termination dates get closer and closer together toward the end. The very last file just says: "EVERYONE."\n\nI\'m starting to think the previous management had some issues.' },
+  { zone: 4, type: 'story', title: 'RE: THE SKELETON\'S JOURNAL',
+    body: 'Remember the skeleton I found the MBA book under? He had a journal in his coat pocket.\n\nMost of it is water-damaged, but I can read the last entry:\n\n"Day 1,247. They\'ve stopped pretending this is a company. The Hand sees everything. The lower floors are sealed. I can hear them through the walls — the old employees, changed into something else. I should have left when the others did. Now the exits are teeth.\n\nIf anyone finds this: the book is the key. Not the words — the IDEA. It was always about the idea. Build something real. Build something that isn\'t just a machine for—"\n\nThe entry ends there. His pen made a long line down the page, like his hand was dragged away.\n\nI\'m going to keep reading the book.' },
+  { zone: 5, type: 'boss', title: 'INCIDENT REPORT: KEVIN THE INTERN',
+    body: 'A "hero" named Kevin tried to raid us. Kitchen pot on his head, wooden sword, acceptance letter from the Heroes\' Guild crumpled in his pocket.\n\nMid-fight, he started crying and told us everything: The Heroes\' Guild sends interns into dungeons as "field training." None of them come back. The Guild calls it "natural attrition." Kevin called it "murder with extra steps."\n\nWe offered him a job. A REAL job. With a title and everything: Chief Suggestion Officer.\n\nHe asked if we had dental. We don\'t know what that means, but we said yes.\n\nKevin is the first person to ever CHOOSE to join Goblin Inc. That matters more than I expected.' },
+
+  // --- ACT 2: THE OLD COMPANY (Zones 6-10) ---
+  // What was the previous company? What is "The Hand"?
+  { zone: 6, type: 'story', title: 'RE: THE LABORATORY FINDINGS',
+    body: 'The Abandoned Laboratory has notes everywhere. Someone was researching "Productivity Enhancement Through Biological Restructuring."\n\nIn plain language: they were turning employees into monsters.\n\nThe "restructured" employees were stronger, faster, didn\'t need breaks, didn\'t ask for raises. Perfect workers. Except they also didn\'t have thoughts, or names, or the ability to stop working.\n\nThe creatures we\'ve been fighting in the dungeon? They\'re not monsters.\n\nThey\'re the old staff.\n\n...We need to talk about our expansion strategy.' },
+  { zone: 7, type: 'story', title: 'RE: THE SERVER ROOM',
+    body: 'Crystal balls linked by copper wire. Ancient networking. We got one working.\n\nIt showed a recording — a company all-hands meeting. A massive hand floating above a stage (literally — THE Hand) addressing rows of terrified employees:\n\n"Your purpose is productivity. Your value is output. You are components in a system, and components do not ask why. Components PRODUCE."\n\nThe employees looked like us. Small. Green. Goblins.\n\nThis dungeon wasn\'t built by some ancient civilization. It was built by goblins. Goblins who forgot they were allowed to be anything other than components.\n\nWe\'re not repeating that. We\'re building something different. Starting with better break room snacks.' },
+  { zone: 8, type: 'story', title: 'RE: THE HR SWAMP',
+    body: 'The HR department has become a literal swamp. Fitting.\n\nBut at the bottom, preserved in the muck, we found the original company charter. It\'s called "The Invisible Hand Corporation." Their mission statement:\n\n"To maximize value extraction from all available resources, including but not limited to: minerals, labor, time, hope, and identity."\n\nThere\'s a handwritten note in the margin: "Is this evil? — Employee #1"\n\nAnd below it, in different ink: "Doesn\'t matter. It\'s profitable. — Management"\n\nI\'ve been reading the MBA book differently lately. Not as instructions. As a WARNING.' },
+  { zone: 9, type: 'story', title: 'PERSONAL LOG: LATE NIGHT',
+    body: 'Can\'t sleep. The other goblins are snoring.\n\nKevin asked me today why I started all this. I said "the book." But that\'s not really true. The truth is, before the book, I was just... here. In the dungeon. Not thinking about why. Not thinking about anything. We all were.\n\nGoblins don\'t usually build things. We scavenge. We fight over scraps. We live in the dark and we don\'t ask why it\'s dark.\n\nThe book didn\'t teach me business. It taught me that CHOOSING what you do — having a purpose you picked yourself — that\'s the thing. That\'s the whole thing.\n\nThe old company took that away from its workers. Turned them into machines.\n\nGoblin Inc. gives it back. Every goblin here chose to be here. That\'s what makes us different.\n\nI think.' },
+  { zone: 10, type: 'boss', title: 'DEFEAT OF SIR REGINALD THE ADEQUATE',
+    body: 'Sir Reginald wasn\'t just a hero. He was a REAL hero — sent by the Heroes\' Guild with actual training and actual armor.\n\nBut here\'s the thing: when we beat him, he didn\'t run. He sat down and asked: "What IS this place? Why are goblins running... a company?"\n\nSo I told him. About the book. The old company. The employees turned into monsters. About choosing your own purpose.\n\nHe was quiet for a long time. Then he said: "The Heroes\' Guild is the same. They send us to die in dungeons and call it glory. They take 90% of the loot and call it administration fees."\n\nSir Reginald is now VP of Security. He kept his sword. We kept his shield (it\'s a really nice serving tray).\n\nNew opportunity unlocked: FRANCHISING. We can spread this idea to other dungeons.' },
+
+  // --- ACT 3: GROWING PAINS (Zones 11-15) ---
+  // Success brings competition and hard questions
   { zone: 11, type: 'story', title: 'RE: THE COMPETITION',
-    body: 'Discovered a rival dungeon operation next door. They have carpet. CARPET. In a dungeon.\n\nThey call themselves "DungeonCorp." Their goblins wear TIES.\n\nThis is corporate espionage territory. I\'ve appointed our sneakiest goblin as Chief Intelligence Officer. His first report: "they have better snacks."' },
-  { zone: 15, type: 'boss', title: 'HOSTILE TAKEOVER COMPLETE',
-    body: 'Chad Thornington III has been defeated. He tried to "pivot" mid-combat. He pivoted directly into our trap.\n\nDungeonCorp is now a subsidiary of Goblin Inc. Their carpet is now OUR carpet. Their ties are now OUR ties.\n\nChad has been reassigned to our suggestion box department. He keeps suggesting we "circle back." Kevin is not impressed.' },
-  { zone: 20, type: 'boss', title: 'LEGAL VICTORY',
-    body: 'After a grueling 200-round battle (mostly paperwork), Cynthia the Dragon Lawyer has been... not defeated, but "settled with."\n\nThe settlement: she works for us now. The heroes\' guild can no longer sue us because our lawyer is a literal dragon.\n\nHer first act: filing a cease and desist against physics. Gravity is now optional in the executive washroom.' },
-  { zone: 21, type: 'story', title: 'RE: IPO ANNOUNCEMENT',
-    body: 'GOBLIN INC. IS NOW PUBLICLY TRADED.\n\nShares opened at 3 Shinies. They are currently worth 3 Shinies. The stock market is one goblin behind a rock yelling numbers.\n\nAnalysts (the same goblin) predict "numbers going up probably."\n\nShareholder meeting scheduled for never. We\'ll keep you posted.' },
-  { zone: 25, type: 'boss', title: 'INTERDIMENSIONAL INCIDENT',
-    body: 'We defeated our evil twin from another dimension. Technically, WE might be the evil twin. There\'s no way to know. We have slightly worse fashion sense, but a much better dental plan.\n\nThe multiverse is now OPEN FOR BUSINESS. Goblin Inc. is going interdimensional.\n\nThe other-dimension goblins have a question: "What\'s an MBA?"\n\nFools. Glorious, exploitable fools.' },
-  { zone: 28, type: 'story', title: 'RE: COSMIC BOARD MEETING',
-    body: 'Attended the Universe\'s Board of Directors meeting. They\'ve been discussing the same agenda item since the Big Bang: "New Business."\n\nWe suggested a merger. The Cosmic Board said they\'d "take it under advisement."\n\nTheir advisement period is 4 billion years. We filed it as "pending."' },
-  { zone: 30, type: 'boss', title: 'WE DID IT',
-    body: 'We defeated The Concept of Capitalism Itself. It congratulated us and offered stock options.\n\nGoblin Inc. is now the dominant economic force in the known universe. Our stock price is "yes." Our market cap is "all of it."\n\nSomewhere, a goblin in a broom closet is reading a book called "MBA for Dummies."\n\nThe cycle continues.\n\n~ FIN ~\n\n(But the dungeon goes on. There\'s always more shinies.)' },
+    body: 'Discovered a rival dungeon operation next door: "DungeonCorp." Goblin-run, like us. But different.\n\nTheir goblins wear ties. Their CEO — Chad Thornington III — has a genuine MBA (from a correspondence course). They have CARPET.\n\nBut when I looked closer: their goblins\' eyes are glassy. They work in silence. They don\'t choose their jobs — they\'re ASSIGNED. Break time is timed to the second.\n\nChad figured out the surface version of what the old company did. No biological restructuring needed. Just enough pressure, just enough control, and the goblins stop being goblins. They become components again.\n\nWe can\'t let that spread.' },
+  { zone: 12, type: 'story', title: 'RE: THE VENDING MACHINE SPEAKS',
+    body: 'The magical vending machine isn\'t just a vending machine. It\'s an interface terminal for the old company\'s systems.\n\nWe got it to display employee records. There were THOUSANDS of goblin workers here. Over generations. Each one given a number, a task, and a tiny room. No names. No choices.\n\nBut then I found something: a hidden directory labeled "DISSIDENTS." Goblins who resisted. Who wrote secret messages on the walls. Who hid books — books about the world outside, about choices, about what goblins used to be before the company.\n\nThe MBA book was in this directory. Someone hid it on purpose.\n\nSomeone wanted a future goblin to find it.' },
+  { zone: 13, type: 'story', title: 'RE: KEVIN\'S QUESTION',
+    body: 'Kevin asked something that kept me up all night:\n\n"Boss, as we get bigger... how do we know WE won\'t become like the old company?"\n\nI said: "Because we\'re different."\n\nHe said: "That\'s what they probably said too."\n\nHe\'s right. Every empire starts with good intentions. Every tyrant was once someone who just wanted things to be better.\n\nSo I made a rule, effective immediately:\n\nGOBLIN INC. BYLAW #1: Any goblin can leave at any time, for any reason, with no penalty, and a fair share of shinies.\n\nNobody has left yet. But the fact that they CAN... that\'s the point.' },
+  { zone: 14, type: 'story', title: 'RE: THE ARCHIVES OF BAD IDEAS',
+    body: 'Found the old company\'s rejected proposals. Most are horrifying:\n\n"Proposal: Remove sleep from the schedule. Employees can rest when productivity targets are met." (Approved, then reversed after the screaming started.)\n\n"Proposal: Merge all employees into a single organism for maximum coordination." (Tabled for further study. This is concerning.)\n\nBut one proposal stood out. Filed near the bottom, marked REJECTED in angry red:\n\n"Proposal: Let employees choose their own tasks based on aptitude and interest. Hypothesis: voluntary engagement outperforms coerced labor."\n\nFiled by Employee #1. The same one who wrote "Is this evil?" on the charter.\n\nEmployee #1 tried to change things from the inside. They failed.\n\nBut their idea survived. In a book, under a skeleton, in a broom closet.\n\nI think Employee #1 would like what we\'re building.' },
+  { zone: 15, type: 'boss', title: 'RE: HOSTILE TAKEOVER — DUNGONCORP',
+    body: 'We didn\'t actually defeat Chad. Not in combat.\n\nDuring the battle, his own goblins stopped fighting. They put down their assigned weapons, took off their ties, and walked to our side of the line.\n\nChad screamed about contracts, about obligations, about how they OWED him. One goblin — the smallest one — turned back and said: "I never signed anything."\n\nDungeonCorp collapsed in twenty minutes. Not from defeat, but from choice. When given an alternative, every single goblin chose to leave.\n\nChad is working in our suggestion box department now. He keeps submitting suggestions like "mandatory team synergy workshops." Kevin files them in Pile B (flammable).\n\nNote to self: you can\'t build something real on a foundation of people who\'d leave if they could.' },
+
+  // --- ACT 4: THE DEEPER DUNGEON (Zones 16-20) ---
+  // What's really down there? The old company's darkest secret.
+  { zone: 16, type: 'story', title: 'RE: THE SEALED FLOORS',
+    body: 'Remember the old bulletin board? "The 4th Sub-Basement is OFF LIMITS per Corporate."\n\nWe\'re past the 4th Sub-Basement now. There are signs everywhere: "AUTHORIZED PERSONNEL ONLY." "BIOLOGICAL HAZARD." "THE HAND SEES ALL."\n\nThe creatures down here are different from the upper floors. Bigger. More... put together. Like the restructuring process was more advanced. Some of them are wearing the remains of lab coats.\n\nThey weren\'t just workers. They were the SCIENTISTS. The ones who designed the restructuring process. And then they were restructured themselves.\n\nThe old company ate its own builders.\n\nI need to know what\'s at the bottom.' },
+  { zone: 18, type: 'story', title: 'RE: THE ACCOUNTING LABYRINTH',
+    body: 'The Accounting Labyrinth isn\'t a metaphor. It\'s literally designed so you can\'t find your way out. Walls shift. Corridors loop. There are chalk marks from previous goblins who tried to map it.\n\nBut the numbers on the walls tell a story:\n\nThe old company\'s profits went UP every quarter for 200 years. Costs went DOWN. Employee count went DOWN. Output went UP.\n\nThe math only works if employees became more productive as they lost more of themselves. The restructuring wasn\'t a side effect of the company\'s growth. It was the BUSINESS MODEL.\n\nConvert workers into things. Things don\'t negotiate. Things don\'t quit. Things don\'t ask if it\'s evil.\n\nI feel sick. But we keep going.' },
+  { zone: 19, type: 'story', title: 'PERSONAL LOG: BEFORE THE DRAGON',
+    body: 'Sir Reginald told me something tonight. The Heroes\' Guild has a saying: "A dungeon conquered is a lesson learned."\n\nHe said he used to think it meant: defeat the boss, take the treasure, move on.\n\nNow he thinks it means: understand WHY the dungeon exists, and you\'ll understand what you\'re really fighting.\n\nThis dungeon exists because someone decided goblins were resources instead of people. Every floor is a monument to that idea. Every "restructured" creature we fight is proof of where it leads.\n\nGoblin Inc. exists because one goblin found a book and had a different idea.\n\nTomorrow we face the dragon. Cynthia, Dragon Lawyer. She represents the Heroes\' Guild — the last institution that still sees goblins as loot-drop generators rather than, you know, people.\n\nWe\'re not going to defeat her with weapons.' },
+  { zone: 20, type: 'boss', title: 'RE: THE TRIAL OF CYNTHIA',
+    body: 'Cynthia the Dragon Lawyer challenged us to a legal proceeding instead of combat. Her argument: Goblins are classified as "Dungeon Resources" under Guild Law, and therefore cannot own property, run businesses, or file taxes.\n\nOur counter-argument: We presented our books. Our balance sheets. Our employee satisfaction surveys (Kevin designed them — they\'re mostly smiley faces, but they\'re REAL).\n\nCynthia read through everything. Then she did something nobody expected.\n\nShe cried.\n\n"In 400 years of practicing law," she said, "nobody has ever shown me a company where the employees were HAPPY."\n\nShe works for us now. Pro bono. She filed a motion to reclassify goblins as "Sentient Beings with Full Legal Standing." It\'s pending. But it\'s FILED.\n\nThis is what winning actually looks like.' },
+
+  // --- ACT 5: THE REVELATION (Zones 21-25) ---
+  // The truth about The Hand, and what you're really building
+  { zone: 21, type: 'story', title: 'RE: IPO & THE REAL SHAREHOLDERS',
+    body: 'Goblin Inc. went public today. Not on a stock exchange — we held an open assembly. Every goblin got one share. One vote.\n\nKevin stood up and said: "I used to deliver swords to heroes who wanted to kill us. Now I decide what we have for lunch on Fridays. That\'s progress."\n\nSir Reginald said: "I used to think glory meant fighting. Now I think it means building something worth protecting."\n\nCynthia said: "You\'re all technically in violation of seventeen Guild statutes. I\'m so proud."\n\nThe share price is 1 Shiny. It will always be 1 Shiny. Because the value of Goblin Inc. isn\'t measured in gold.' },
+  { zone: 23, type: 'story', title: 'RE: THE INTERDIMENSIONAL LOADING DOCK',
+    body: 'The portal in the loading dock connects to other dungeons. Other VERSIONS of this dungeon, in other realities.\n\nIn some of them, the old company is still running. We can see the goblins through the portal, working in silence, eyes empty, numbers on their backs.\n\nIn some of them, nobody ever found the book.\n\nI keep thinking about Employee #1. They hid books across the dungeon, hoping someone would find one. In our reality, I did. In how many others did the books rot unread?\n\nWe have a portal now. We have a company that works. We have proof that there\'s another way.\n\nMaybe it\'s time to start delivering books.' },
+  { zone: 25, type: 'boss', title: 'RE: THE OTHER YOU',
+    body: 'The Multiverse Branch Office was run by an alternate version of me. Same goblin. Same broom closet. But in their reality, they found a different book: "Ruthless Leadership: Crush or Be Crushed."\n\nTheir Goblin Inc. was efficient. Profitable. Growing. And completely hollow. Their goblins worked because they were afraid, not because they chose to.\n\nWhen we defeated them, I offered a handshake. They slapped it away and said: "You\'re weak. Choice is inefficient. Fear is faster."\n\nI said: "Faster at what?"\n\nThey didn\'t have an answer.\n\nTheir goblins are with us now. It took three days before the smallest one smiled. It took a week before any of them spoke without being spoken to first. It took a month before one of them came to me and said:\n\n"Can I... choose my own job?"\n\nYes. That\'s the whole point. That was always the whole point.' },
+
+  // --- ACT 6: THE BOTTOM (Zones 26-30) ---
+  // What is The Hand? The final truth.
+  { zone: 26, type: 'story', title: 'RE: THE SPACE BETWEEN',
+    body: 'Below the lowest sub-basement, the dungeon stops looking like a building. It looks like a BODY. Corridors like veins. Rooms like organs. The walls pulse.\n\nThe old company didn\'t just occupy this dungeon. The dungeon IS the old company. It grew. The "Biological Restructuring" wasn\'t just done to the employees — it was done to the BUILDING. The company became a living thing.\n\nAnd at the bottom, in the heart of it...\n\nThe Hand.' },
+  { zone: 27, type: 'story', title: 'RE: THE CELESTIAL MAILROOM',
+    body: 'Letters. Billions of them. From every version of this dungeon across every reality. All addressed to The Hand. All saying the same thing in different words:\n\n"Quarterly targets met. Awaiting further instructions."\n\nThe Hand never wrote back. Not once, in any reality. Every dungeon, every company, every goblin turned into a machine — all working toward targets set by something that NEVER RESPONDED.\n\nThe old company destroyed itself trying to please something that wasn\'t listening.\n\nThat\'s the joke. That\'s the horrible, cosmic joke. There was never anyone at the top. The Hand isn\'t a leader. It\'s an IDEA. The idea that productivity is purpose. That efficiency is meaning. That if you just work HARD ENOUGH, someone, somewhere, will tell you it was worth it.\n\nNobody tells you it\'s worth it. You have to decide that for yourself.' },
+  { zone: 28, type: 'story', title: 'PERSONAL LOG: ALMOST THERE',
+    body: 'Sitting outside the final chamber. Kevin, Sir Reginald, and Cynthia are here. And a hundred goblins who chose to come.\n\nI asked them why they\'re here. Not as a test. Because I genuinely wanted to know.\n\nKevin said: "Because you asked instead of ordered."\nSir Reginald said: "Because this is worth protecting."\nCynthia said: "Because the law should serve people, and I\'d like to meet the thing it\'s been serving instead."\n\nAnd the smallest goblin — the one from the alternate dimension who took a month to smile — said: "Because I want to see it end."\n\nWe go in at dawn.' },
+  { zone: 29, type: 'story', title: 'RE: THE BOARD ROOM',
+    body: 'The Universal Board Room. At the center of the dungeon-organism. The walls are covered in the logos of every company that ever existed in every dimension. All of them are The Hand.\n\nThe same corporation, across infinite realities, all running the same playbook: consume workers, optimize output, grow, repeat. No creativity. No joy. No purpose beyond the next quarterly report.\n\nAnd at the head of the table: an empty chair.\n\nThe CEO seat has ALWAYS been empty. The Hand was never a being. It was a SYSTEM. A pattern that replicates itself — from dungeon to dungeon, reality to reality — by convincing each new generation that someone at the top has a plan.\n\nNobody has a plan. There is no top.\n\nThere\'s just us, choosing what to build next.' },
+  { zone: 30, type: 'boss', title: 'RE: THE LAST MEETING',
+    body: 'We sat in the empty chair. All of us. We dragged in enough chairs for everyone.\n\nThe dungeon fought back — the system doesn\'t like being questioned. Walls shaking, old machinery screaming, restructured creatures pouring in from every corridor. The final quarterly review.\n\nBut here\'s what the system never accounted for: goblins who WANT to be there fight differently than goblins who HAVE to be there.\n\nWe held.\n\nAnd when it was over, the dungeon stopped pulsing. The walls went still. The creatures — the old employees — sat down, one by one, and the blankness left their eyes.\n\nEmployee #4,207 looked at me and said: "What... what year is it?"\n\nI told them. Then I told them about Goblin Inc. About choice. About the book.\n\nThey said: "Employee #1 hid that book four hundred years ago. We thought nobody would ever find it."\n\nI said: "Someone always finds the book."\n\nGoblin Inc. isn\'t a company. Not really. It\'s a proof of concept. Proof that you can build something where the builders matter.\n\nThe dungeon is ours now. Not as a machine. As a HOME.\n\n~ THE BEGINNING ~\n\n(There are more dungeons out there. More books to deliver. More goblins to show that the chair at the top was always empty.)\n\n(And there are always more shinies.)' },
 ];
 
 const PRESTIGE_PERKS = [
@@ -371,6 +424,42 @@ const PRESTIGE_PERKS = [
 // SECTION 2: GAME STATE
 // ===========================================
 
+// Tutorial steps - shown in order, each dismissed individually
+const TUTORIAL = [
+  { id: 'welcome',
+    text: 'Welcome, CEO! You found an MBA textbook in a dungeon. Time to start a business. Click "Mine Shinies" to gather your first gold.',
+    condition: () => true,
+    done: () => game.stats.totalClicks >= 1 },
+  { id: 'firstShinies',
+    text: 'Nice find! Keep clicking to build up some Shinies. Once you have 10, the Build tab will unlock.',
+    condition: () => game.stats.totalClicks >= 1,
+    done: () => game.unlocks.tabBuild },
+  { id: 'buildMine',
+    text: 'New tab unlocked: Build! Head there and buy a Shiny Mine to automate your income.',
+    condition: () => game.unlocks.tabBuild,
+    done: () => (game.buildings.shinyMine || 0) >= 1 },
+  { id: 'buildFarm',
+    text: 'Your mine is producing Shinies automatically! Next step: build a Mushroom Farm. Every operation needs food.',
+    condition: () => (game.buildings.shinyMine || 0) >= 1,
+    done: () => (game.buildings.mushroomFarm || 0) >= 1 },
+  { id: 'buildHut',
+    text: 'Food is growing! Now build a Goblin Hut to recruit workers for your dungeon.',
+    condition: () => (game.buildings.mushroomFarm || 0) >= 1,
+    done: () => (game.buildings.goblinHut || 0) >= 1 },
+  { id: 'assignGoblins',
+    text: 'You have goblins! Back on the Gather tab, assign them to Mining, Farming, or other jobs using the + buttons.',
+    condition: () => Math.floor(game.resources.goblins) >= 1,
+    done: () => getTotalAssigned() >= 1 },
+  { id: 'unlockDungeon',
+    text: 'Your workforce is active! The Dungeon tab is now open. Assign goblins to Fighting, then send them to explore Zone 1.',
+    condition: () => game.unlocks.tabDungeon,
+    done: () => game.zone.cleared.length >= 1 },
+  { id: 'keepGoing',
+    text: 'Zone cleared! Keep building, researching, and exploring. New buildings and upgrades unlock as you push deeper into the dungeon.',
+    condition: () => game.zone.cleared.length >= 1,
+    done: () => game.zone.cleared.length >= 3 },
+];
+
 function defaultState() {
   return {
     resources: { shinies: 0, goblins: 0, food: 20, schemes: 0 },
@@ -387,10 +476,12 @@ function defaultState() {
     bonuses: { maxGoblins: 0, foodCap: 0 },
     flags: { overtimePay: false, middleManagement: false },
     stats: { totalClicks: 0, totalShinies: 0, highestZone: 0, totalZonesCleared: 0 },
+    unlocks: {},
+    tutorialDismissed: [],
     memos: [],
     log: [],
     lastTick: Date.now(),
-    version: 1,
+    version: 2,
   };
 }
 
@@ -873,6 +964,45 @@ function tickCombat(dt) {
   }
 }
 
+let _silentUnlocks = false;
+
+function checkUnlocks() {
+  const u = game.unlocks;
+  const b = game.buildings;
+  const r = game.resources;
+  const z = game.zone;
+
+  function unlock(key, msg) {
+    if (u[key]) return;
+    u[key] = true;
+    if (!_silentUnlocks && msg) addLog(msg, 'story');
+  }
+
+  // Tabs
+  if (game.stats.totalClicks >= 3 || r.shinies >= 8 || Object.keys(b).length > 0)
+    unlock('tabBuild', 'New tab unlocked: Build!');
+  if (r.schemes > 0 || game.upgrades.length > 0 || (b.thinkinRock || 0) >= 1)
+    unlock('tabResearch', 'New tab unlocked: Research!');
+  if (Math.floor(r.goblins) >= 1 || z.cleared.length > 0)
+    unlock('tabDungeon', 'New tab unlocked: Dungeon!');
+  if (game.memos.length > 0)
+    unlock('tabMemos');
+  if (game.stats.highestZone >= 9)
+    unlock('tabFranchise', 'New tab unlocked: Franchise!');
+
+  // Resources
+  if ((b.mushroomFarm || 0) >= 1) unlock('resFood');
+  if ((b.goblinHut || 0) >= 1 || Math.floor(r.goblins) >= 1) unlock('resGoblins');
+  if ((b.thinkinRock || 0) >= 1 || r.schemes > 0 || game.upgrades.length > 0) unlock('resSchemes');
+
+  // Workforce roles
+  if (Math.floor(r.goblins) >= 1) unlock('workforce');
+  if (u.workforce) unlock('assignMining');
+  if (u.workforce && (b.mushroomFarm || 0) >= 1) unlock('assignFarming');
+  if (u.workforce && (b.thinkinRock || 0) >= 1) unlock('assignThinking');
+  if (u.workforce && u.tabDungeon) unlock('assignFighting');
+}
+
 function tick() {
   const now = Date.now();
   const dt = Math.min((now - game.lastTick) / 1000, 1); // cap delta to 1 sec per frame
@@ -880,6 +1010,7 @@ function tick() {
 
   tickResources(dt);
   tickCombat(dt);
+  checkUnlocks();
 }
 
 function checkMemos() {
@@ -900,12 +1031,13 @@ const UI = {
   currentTab: 'gather',
 
   switchTab(tab) {
-    // Check if franchise is locked
-    if (tab === 'franchise' && game.stats.highestZone < 9) {
-      addLog('Reach Zone 10 to unlock Franchising!', 'warning');
-      announce('Franchise tab is locked. Reach Zone 10 to unlock.');
-      return;
-    }
+    // Check if tab is unlocked
+    const tabUnlockMap = {
+      build: 'tabBuild', research: 'tabResearch', dungeon: 'tabDungeon',
+      memos: 'tabMemos', franchise: 'tabFranchise',
+    };
+    const unlockKey = tabUnlockMap[tab];
+    if (unlockKey && !game.unlocks[unlockKey]) return;
 
     UI.currentTab = tab;
     document.querySelectorAll('.tab[role="tab"]').forEach(t => {
@@ -922,6 +1054,8 @@ const UI = {
   },
 
   render() {
+    UI.applyUnlocks();
+    UI.renderTutorial();
     UI.renderResources();
     // Only render the active tab to avoid unnecessary DOM churn
     switch (UI.currentTab) {
@@ -933,7 +1067,72 @@ const UI = {
       case 'memos': UI.renderMemos(); break;
     }
     UI.renderLog();
-    UI.updateTabStates();
+  },
+
+  applyUnlocks() {
+    const u = game.unlocks;
+    // Tabs
+    toggle('tab-build', u.tabBuild);
+    toggle('tab-research', u.tabResearch);
+    toggle('tab-dungeon', u.tabDungeon);
+    toggle('tab-memos', u.tabMemos);
+    toggle('tab-franchise', u.tabFranchise);
+
+    // Resources
+    toggle('res-food', u.resFood);
+    toggle('res-goblins', u.resGoblins);
+    toggle('res-schemes', u.resSchemes);
+
+    // Workforce section
+    const hasWorkforce = u.workforce;
+    toggle('workforce-section', hasWorkforce);
+    const gatherPanel = document.getElementById('panel-gather');
+    if (hasWorkforce) gatherPanel.classList.add('has-workforce');
+    else gatherPanel.classList.remove('has-workforce');
+
+    // Individual assignment rows
+    toggle('assign-row-mining', u.assignMining);
+    toggle('assign-row-farming', u.assignFarming);
+    toggle('assign-row-thinking', u.assignThinking);
+    toggle('assign-row-fighting', u.assignFighting);
+
+    // Franchise tab locked state
+    const franTab = document.getElementById('tab-franchise');
+    if (u.tabFranchise) {
+      franTab.classList.remove('locked');
+      franTab.setAttribute('aria-disabled', 'false');
+    }
+  },
+
+  renderTutorial() {
+    const banner = document.getElementById('tutorial-banner');
+    const textEl = document.getElementById('tutorial-text');
+
+    // Find the first tutorial step that applies
+    let activeStep = null;
+    for (const step of TUTORIAL) {
+      if (game.tutorialDismissed.includes(step.id)) continue;
+      if (step.done()) { game.tutorialDismissed.push(step.id); continue; }
+      if (step.condition()) { activeStep = step; break; }
+    }
+
+    if (activeStep) {
+      banner.classList.remove('hidden');
+      if (textEl.dataset.stepId !== activeStep.id) {
+        textEl.textContent = activeStep.text;
+        textEl.dataset.stepId = activeStep.id;
+      }
+    } else {
+      banner.classList.add('hidden');
+    }
+  },
+
+  dismissTutorial() {
+    const textEl = document.getElementById('tutorial-text');
+    const stepId = textEl.dataset.stepId;
+    if (stepId && !game.tutorialDismissed.includes(stepId)) {
+      game.tutorialDismissed.push(stepId);
+    }
   },
 
   renderResources() {
@@ -985,17 +1184,10 @@ const UI = {
       const lvl = game.buildings[id] || 0;
       const cost = getBuildingCost(id, lvl);
       const affordable = canAfford(cost);
-      const unlocked = game.zone.current >= bld.unlockZone || game.zone.cleared.includes(bld.unlockZone - 1) || bld.unlockZone === 0;
+      const unlocked = game.zone.current >= bld.unlockZone || game.zone.cleared.includes(bld.unlockZone - 1) || bld.unlockZone === 0 || lvl > 0;
 
-      if (!unlocked) {
-        html += `<div class="building-card locked" role="listitem" aria-hidden="true">
-          <div class="building-info">
-            <span class="building-name">???</span>
-            <div class="building-desc">Unlocks at Zone ${bld.unlockZone + 1}</div>
-          </div>
-        </div>`;
-        continue;
-      }
+      // Hide locked buildings entirely - they appear when unlocked
+      if (!unlocked) continue;
 
       html += `<div class="building-card" role="listitem">
         <div class="building-info">
@@ -1011,6 +1203,9 @@ const UI = {
           <div class="building-cost" aria-hidden="true">${formatCost(cost, affordable)}</div>
         </div>
       </div>`;
+    }
+    if (!html) {
+      html = '<p class="flavor-text">Nothing to build yet. Keep gathering Shinies!</p>';
     }
     container.innerHTML = html;
   },
@@ -1118,19 +1313,9 @@ const UI = {
   },
 
   renderFranchise() {
-    const unlocked = game.stats.highestZone >= 9;
-    const tabBtn = document.getElementById('tab-franchise');
-
-    if (unlocked) {
-      tabBtn.classList.remove('locked');
-      document.getElementById('franchise-locked').style.display = 'none';
-      document.getElementById('franchise-content').style.display = 'block';
-    } else {
-      tabBtn.classList.add('locked');
-      document.getElementById('franchise-locked').style.display = 'block';
-      document.getElementById('franchise-content').style.display = 'none';
-      return;
-    }
+    if (!game.unlocks.tabFranchise) return;
+    document.getElementById('franchise-locked').style.display = 'none';
+    document.getElementById('franchise-content').style.display = 'block';
 
     const points = getPrestigePoints();
     const available = game.prestige.totalPoints - game.prestige.spentPoints;
@@ -1209,17 +1394,17 @@ const UI = {
     container.innerHTML = html;
   },
 
-  updateTabStates() {
-    const franTab = document.getElementById('tab-franchise');
-    if (game.stats.highestZone >= 9) {
-      franTab.classList.remove('locked');
-      franTab.setAttribute('aria-disabled', 'false');
-    }
-  },
 };
 
 
 // --- UI HELPERS ---
+
+function toggle(id, visible) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (visible) el.classList.remove('hidden');
+  else el.classList.add('hidden');
+}
 
 function setRate(id, rate) {
   const el = document.getElementById(id);
@@ -1290,6 +1475,9 @@ function deepMerge(target, source) {
 
 function init() {
   Game.load();
+  _silentUnlocks = true;
+  checkUnlocks();
+  _silentUnlocks = false;
   checkMemos();
 
   // Auto-save every 30 seconds
@@ -1313,10 +1501,10 @@ function init() {
     // Don't intercept if typing in an input
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-    const tabs = ['gather', 'build', 'research', 'dungeon', 'franchise', 'memos'];
+    const tabList = ['gather', 'build', 'research', 'dungeon', 'franchise', 'memos'];
     const num = parseInt(e.key);
     if (num >= 1 && num <= 6) {
-      UI.switchTab(tabs[num - 1]);
+      UI.switchTab(tabList[num - 1]);
     }
     // Space to gather
     if (e.key === ' ' && UI.currentTab === 'gather') {
@@ -1344,7 +1532,9 @@ function init() {
     });
   }
 
-  addLog('Welcome to Goblin Inc. Your MBA journey begins now.', 'story');
+  if (game.stats.totalClicks > 0) {
+    addLog('Welcome back, CEO.', '');
+  }
 }
 
 // Start the game
