@@ -1093,7 +1093,7 @@ function tickResources(dt) {
         unassignOne();
       }
     }
-  } else {
+  } else if (game.resources.food > getFoodCap() * 0.1) {
     game._starvationWarned = false;
   }
   if (game.resources.schemes < 0) game.resources.schemes = 0;
