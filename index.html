@@ -14,6 +14,7 @@
       <div id="title-row">
         <h1>Goblin Inc.<span class="subtitle">Corporate Dungeon Management</span></h1>
         <div id="settings-wrapper">
+          <button id="changelog-toggle" onclick="UI.toggleChangelog()" aria-label="Changelog" title="Changelog">&#x1F4DC;</button>
           <button id="settings-toggle" onclick="UI.toggleSettings()" aria-label="Settings" aria-expanded="false" aria-controls="settings-menu">&#x2699;</button>
           <div id="settings-menu" class="settings-menu hidden" role="menu" aria-label="Game settings">
             <button role="menuitem" onclick="Game.save(); UI.toggleSettings()">Save Game</button>
@@ -228,6 +229,17 @@
     <div class="intro-content">
       <div id="intro-text" class="intro-text"></div>
       <button id="intro-next-btn" class="intro-btn" onclick="Game.advanceIntro()">Continue</button>
+    </div>
+  </div>
+
+  <!-- Changelog overlay -->
+  <div id="changelog-overlay" class="changelog-overlay hidden" role="dialog" aria-modal="true" aria-label="Changelog">
+    <div class="changelog-content">
+      <div class="changelog-header">
+        <h2>Goblin Inc. Changelog</h2>
+        <button class="changelog-close" onclick="UI.toggleChangelog()" aria-label="Close changelog">&#x2715;</button>
+      </div>
+      <div id="changelog-entries" class="changelog-entries"></div>
     </div>
   </div>
 

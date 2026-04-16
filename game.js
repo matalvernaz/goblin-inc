@@ -16,8 +16,8 @@ const BUILDINGS = {
     effect: (lvl) => `Miners produce ${50 * lvl}% more (+${fmt(0.08 * lvl)}/s base)`,
     unlockZone: 0,
     story: {
-      1: 'First goblin grabs rusty pickaxe. Looks at rock. Looks at pickaxe. "We just... hit it?" YES. Hit rock, get shinies. This is BUSINESS.',
-      3: 'Mine going deeper! Can hear goblins singing down there. Song is bad. Very bad. But is THEIR bad song and nobody told them to sing it.',
+      1: 'Found rusty pickaxe next to skeleton-man. Looks at rock. Looks at pickaxe. Just... hit it? YES. Hit rock, get MORE shinies. Book calls this "in-fra-struk-cher." We call it HOLE WITH SHINIES.',
+      3: 'Mine going DEEPER. Finding rocks that GLOW. Didn\'t know rocks could glow! Every level down, shinies get shinier. Is like the dungeon WANTS us to dig. (Suspicious. But also: shiny.)',
       5: 'Grik carved "DEPARTMENT OF HITTING ROCKS" above the entrance. Nobody asked him to! He just DID it. Goblins making signs! For FUN!',
       10: 'Mine has SHIFTS now. Schedule on wall. We didn\'t make schedule — THEY did. Goblins organizing themselves?? Book didn\'t have chapter for this.',
     },
@@ -44,8 +44,8 @@ const BUILDINGS = {
     effect: (lvl) => `Farmers produce ${50 * lvl}% more, +${30 * lvl} food cap`,
     unlockZone: 0,
     story: {
-      1: 'Mushrooms grow FAST in dark. Taste like dirt and sadness but is OUR dirt and sadness. Book says "feed your people." These are our people now.',
-      3: 'Goblin found out if you TALK to mushrooms they grow bigger. Nobody knows why. Don\'t care. We have Mushroom Whisperer now. Is real job title.',
+      1: 'Mushrooms grow FAST in dark. Taste like dirt and sadness but is OUR dirt and sadness. Book says "se-cure food sup-ply before hiring." Smart book. Gotta eat before can think about building empire.',
+      3: 'Been talking to the mushrooms. THEY LISTEN. Grew twice as big after nice chat about weather (always dark, always damp — short chat). Book calls this "or-gan-ic growth." We call it mushroom magic.',
       5: 'Farm has TYPES now! Brown ones, gray ones, and special purple ones that make you see next Tuesday. (Next Tuesday is also mushrooms.)',
       10: 'Old company fed workers gray paste through tubes. WE have a FARM. With FARMERS who picked "farmer" as their job. Is completely different. Is BETTER.',
     },
@@ -191,7 +191,7 @@ const UPGRADES = [
     effect: '+50% combat power',
     unlockZone: 5,
     apply: () => { game.multipliers.combat *= 1.5; },
-    story: 'Sir Reginald taught goblins to stand in line and not run away. "That\'s IT?" they asked. "That\'s 90% of fighting," he said. "Other 10% is wanting something worth fighting FOR." Goblins got real quiet after that.',
+    story: 'Biggest goblin had idea: "What if we all face SAME direction?" Revolutionary. Drew lines on floor. Goblins stood in rows. Didn\'t run away. "That\'s IT?" they asked. Turns out not running is 90% of fighting. Other 10% is wanting something worth fighting FOR. Goblins got real quiet after that.',
   },
   {
     id: 'overtimePay',
@@ -261,7 +261,7 @@ const UPGRADES = [
     effect: '3x goblin production, +20 max goblins',
     unlockZone: 13,
     apply: () => { game.multipliers.goblinProd *= 3; game.bonuses.maxGoblins += 20; },
-    story: 'Cynthia checked if is okay. "Is not cloning," she said. "Is... fast growing. Like mushrooms." New goblins wake up confused but curious. We give them whole day to pick own name before anything else. Old company gave workers NUMBERS. We give NAMES.',
+    story: 'Worried for a minute. Is this okay? Is this what old company did? No. Is DIFFERENT. Old company made workers from EXISTING goblins — took away what they were. We just... grow new ones. Fast. Like mushrooms. New goblins wake up confused but curious. We give them whole day to pick own name before anything else. Old company gave workers NUMBERS. We give NAMES.',
   },
   {
     id: 'siegeEngines',
@@ -479,6 +479,21 @@ const INTRO_PAGES = [
   '<p>Book is called <span class="intro-gold">"MBA For Dummies."</span></p><p>Most words too big. But PICTURES. Pictures show someone sitting in big chair, telling OTHER people what to do. Not fighting. Not scavenging. <span class="intro-emphasis">Building</span> things. Making <span class="intro-emphasis">plans</span>.</p><p>We never had a plan before. Plans are for... not-goblins.</p><p>But maybe they don\'t have to be.</p>',
   '<p>Look around broom closet. Look at dead fancy-man. Look at other goblins sleeping in the dark. Something different now. Not dungeon — dungeon same as always.</p><p><span class="intro-emphasis">Us.</span> We are different.</p><p>Want to know why this place is here. Want to know what happened. Want to build something where goblins aren\'t just... goblins. Where we <span class="intro-emphasis">pick</span> what we do.</p><p>Book makes it sound possible.</p>',
   '<p>Open book to Chapter 1.</p><p><span class="intro-gold">"Step One: Ack-wire Cap-it-all."</span></p><p>Don\'t know what that means. But there\'s a picture of gold coins.</p><p>We know gold coins. We call them shinies.</p><p>There are shiny rocks on the floor right here.</p><p>We pick one up.</p>',
+];
+
+
+const CHANGELOG = [
+  {
+    version: 'v1.0.0 — Grand Opening',
+    date: '2026-04-15',
+    changes: [
+      'Goblin Inc. is open for business! 30 zones of corporate dungeon exploration.',
+      '6 buildings, 20 research upgrades, and a franchise (prestige) system.',
+      'A 6-act story told through memos, building milestones, and zone descriptions.',
+      'Full keyboard navigation and screen reader support.',
+      'Offline progress (up to 4 hours), auto-save, and import/export.',
+    ],
+  },
 ];
 
 
@@ -1140,7 +1155,7 @@ function checkUnlocks() {
   if (r.schemes > 0 || game.upgrades.length > 0 || (b.thinkinRock || 0) >= 1)
     unlock('tabResearch', 'A goblin had a THOUGHT. Not just "hungry" or "scared" — an actual idea. Book calls this "R and D." We call it big brain time. Research tab ready!');
   if (Math.floor(r.goblins) >= 1 || z.cleared.length > 0)
-    unlock('tabDungeon', 'Got goblins now. Got fighters. Tunnels go deep and dark and something is DOWN THERE. Book says "expand or die." We pick expand. Dungeon tab ready!');
+    unlock('tabDungeon', 'Got goblins now! Tunnels go deep and dark and something is DOWN THERE. Book says "expand or die." We pick expand. Dungeon tab ready!');
   if (game.memos.length > 0 && z.cleared.length >= 1)
     unlock('tabMemos', 'Found papers in the cleared zone! Old papers. Fancy writing. From whoever was here before. Can\'t read all of it but... this is important. Memos tab ready!');
   if (game.stats.highestZone >= 9)
@@ -1294,6 +1309,33 @@ const UI = {
     const stepId = textEl.dataset.stepId;
     if (stepId && !game.tutorialDismissed.includes(stepId)) {
       game.tutorialDismissed.push(stepId);
+    }
+  },
+
+  toggleChangelog() {
+    const overlay = document.getElementById('changelog-overlay');
+    const isHidden = overlay.classList.contains('hidden');
+    if (isHidden) {
+      const entries = document.getElementById('changelog-entries');
+      let html = '';
+      for (const entry of CHANGELOG) {
+        html += `<div class="changelog-entry">
+          <div class="changelog-entry-header">
+            <span class="changelog-version">${entry.version}</span>
+            <span class="changelog-date">${entry.date}</span>
+          </div>
+          <ul>${entry.changes.map(c => `<li>${c}</li>`).join('')}</ul>
+        </div>`;
+      }
+      entries.innerHTML = html;
+      overlay.classList.remove('hidden');
+      // Close on backdrop click
+      overlay.onclick = (e) => {
+        if (e.target === overlay) UI.toggleChangelog();
+      };
+      document.querySelector('.changelog-close').focus();
+    } else {
+      overlay.classList.add('hidden');
     }
   },
 
@@ -1722,6 +1764,15 @@ function init() {
   document.addEventListener('keydown', (e) => {
     // Don't intercept if typing in an input
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    // Escape closes changelog
+    if (e.key === 'Escape') {
+      const changelog = document.getElementById('changelog-overlay');
+      if (!changelog.classList.contains('hidden')) {
+        UI.toggleChangelog();
+        return;
+      }
+    }
 
     const tabList = ['gather', 'build', 'research', 'dungeon', 'franchise', 'memos'];
     const num = parseInt(e.key);

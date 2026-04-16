@@ -151,6 +151,114 @@ body {
   border-color: var(--gold);
 }
 
+/* --- CHANGELOG OVERLAY --- */
+.changelog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 9998;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.changelog-overlay.hidden {
+  display: none !important;
+}
+
+.changelog-content {
+  max-width: 640px;
+  width: 100%;
+  margin-top: 40px;
+  margin-bottom: 40px;
+}
+
+.changelog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.changelog-header h2 {
+  color: var(--gold);
+  font-size: 1.3rem;
+}
+
+.changelog-close {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.changelog-close:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.changelog-entry {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+
+.changelog-entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+}
+
+.changelog-version {
+  color: var(--gold);
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.changelog-date {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.changelog-entry ul {
+  list-style: none;
+  padding: 0;
+}
+
+.changelog-entry li {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  padding: 2px 0;
+  padding-left: 16px;
+  position: relative;
+}
+
+.changelog-entry li::before {
+  content: '\2022';
+  color: var(--gold-dim);
+  position: absolute;
+  left: 0;
+}
+
 /* --- HEADER --- */
 #header {
   padding: 12px 0;
@@ -186,6 +294,29 @@ h1 .subtitle {
 
 #settings-wrapper {
   position: relative;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+#changelog-toggle {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+#changelog-toggle:hover {
+  background: var(--bg-hover);
+  color: var(--text);
 }
 
 #settings-toggle {
