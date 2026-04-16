@@ -26,7 +26,7 @@ const BUILDINGS = {
     name: 'Goblin Hut',
     desc: 'A hut for making more goblins. Don\'t ask how.',
     baseCost: { shinies: 50 },
-    costMult: 1.18,
+    costMult: 1.8,
     effect: (lvl) => `+${5 * lvl} max goblins, +${fmt(0.15 * lvl)} goblins/s`,
     unlockZone: 0,
     story: {
