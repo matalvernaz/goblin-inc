@@ -592,6 +592,7 @@ let game = defaultState();
 // ===========================================
 
 function fmt(n) {
+  if (n < 0) return '-' + fmt(-n);
   if (n >= 1e12) return (n / 1e12).toFixed(2) + 'T';
   if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
   if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
@@ -1242,11 +1243,13 @@ function checkUnlocks() {
 
 function tick() {
   const now = Date.now();
-  const dt = Math.min((now - game.lastTick) / 1000, 1); // cap delta to 1 sec per frame
+  const elapsed = (now - game.lastTick) / 1000;
   game.lastTick = now;
 
-  tickResources(dt);
-  tickCombat(dt);
+  // Apply full elapsed time for resources (handles tab-switch gaps, up to 4h)
+  tickResources(Math.min(elapsed, 3600 * 4));
+  // Cap combat to 1s per frame — no catch-up (requires active play)
+  tickCombat(Math.min(elapsed, 1));
   checkUnlocks();
 }
 
@@ -1512,7 +1515,7 @@ const UI = {
         <div class="building-buy">
           <button class="buy-btn ${affordable ? '' : 'btn-unaffordable'}" onclick="Game.buyBuilding('${id}')"
             aria-label="${affordable ? 'Build' : 'Cannot afford'} ${bld.name} level ${lvl + 1}, costs ${formatCostText(cost)}">
-            ${affordable ? (lvl > 0 ? 'Build +1' : 'Build') : 'Need Shinies'}
+            ${affordable ? (lvl > 0 ? 'Build +1' : 'Build') : 'Can\'t Afford'}
           </button>
           <div class="building-cost">${formatCost(cost, affordable)}</div>
         </div>
@@ -1570,7 +1573,7 @@ const UI = {
           <div class="building-buy">
             <button class="buy-btn ${affordable ? '' : 'btn-unaffordable'}" onclick="Game.buyUpgrade('${upg.id}')"
               aria-label="${affordable ? 'Research' : 'Cannot afford'} ${upg.name}, costs ${formatCostText(upg.cost)}. ${upg.effect}">
-              ${affordable ? 'Research' : 'Need Schemes'}
+              ${affordable ? 'Research' : 'Can\'t Afford'}
             </button>
             <div class="building-cost">${formatCost(upg.cost, affordable)}</div>
           </div>
