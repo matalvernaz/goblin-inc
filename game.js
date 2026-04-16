@@ -367,15 +367,15 @@ const ZONES = [
 const MEMOS = [
   // --- ACT 1: THE AWAKENING (Zones 0-5) ---
   // You're a goblin who found a book. But WHY was the book here?
-  { zone: 0, type: 'story', title: 'RE: NEW MANAGEMENT',
+  { zone: 1, type: 'story', title: 'RE: NEW MANAGEMENT',
     body: 'MEMO TO: All Goblins\nFROM: You (Self-Appointed Chief Executive Goblin)\n\nI found a book. It was wedged under a skeleton wearing very fancy clothes. The skeleton had a name tag: "Regional Manager."\n\nThe book is called "MBA For Dummies." Most of the words are too long, but I understood the pictures. They show someone telling OTHER people what to do while sitting in a big chair.\n\nI want to be the one in the big chair.\n\nWe\'re going corporate. No more mindless hoarding — we\'re going to STRATEGICALLY hoard. First order of business: find more shinies.\n\nP.S. Nobody touch the skeleton. He\'s our first employee. Posthumously.' },
-  { zone: 1, type: 'story', title: 'RE: WHO BUILT THIS PLACE?',
+  { zone: 2, type: 'story', title: 'RE: WHO BUILT THIS PLACE?',
     body: 'Expanding into the Supply Closet, I noticed something odd. These aren\'t natural caves. Someone BUILT this dungeon. There are doorframes. Light fixtures (broken). A sign that says "FLOOR 1 — ORIENTATION."\n\nOrientation for WHAT?\n\nAlso found more skeletons. They\'re all wearing the same uniform. Little embroidered logo on the chest — a hand giving a thumbs up. Creepy.\n\nWhatever company used to operate here, they\'re gone. We\'re the management now.' },
-  { zone: 2, type: 'story', title: 'RE: THE BREAK ROOM DISCOVERY',
+  { zone: 3, type: 'story', title: 'RE: THE BREAK ROOM DISCOVERY',
     body: 'The Break Room had a bulletin board. Under layers of dust, there were notices:\n\n"MANDATORY FUN FRIDAY — ALL EMPLOYEES MUST ATTEND"\n"REMINDER: The 4th Sub-Basement is OFF LIMITS per Corporate"\n"Q3 PRODUCTIVITY DOWN 200% — SEE ATTACHED RE: CONSEQUENCES"\n\nThe "consequences" memo was torn off. There were claw marks on the wall behind the board.\n\nAlso found a coffee machine. It still works somehow. Nobody knows what coffee is, but it smells like ambition mixed with desperation. Very corporate.' },
-  { zone: 3, type: 'story', title: 'RE: THE FILING CAVERN',
+  { zone: 4, type: 'story', title: 'RE: THE FILING CAVERN',
     body: 'Thousands of documents. Personnel files. We can\'t read most of them — the language is old and strange — but our best reader (Grik, who once ate a dictionary) translated some:\n\n"Employee #4,207 — Terminated. Reason: Asking Questions."\n"Employee #4,208 — Terminated. Reason: Not Asking Questions."\n"Employee #4,209 — Terminated. Reason: Looked at Employee #4,207."\n\nThe termination dates get closer and closer together toward the end. The very last file just says: "EVERYONE."\n\nI\'m starting to think the previous management had some issues.' },
-  { zone: 4, type: 'story', title: 'RE: THE SKELETON\'S JOURNAL',
+  { zone: 5, type: 'story', title: 'RE: THE SKELETON\'S JOURNAL',
     body: 'Remember the skeleton I found the MBA book under? He had a journal in his coat pocket.\n\nMost of it is water-damaged, but I can read the last entry:\n\n"Day 1,247. They\'ve stopped pretending this is a company. The Hand sees everything. The lower floors are sealed. I can hear them through the walls — the old employees, changed into something else. I should have left when the others did. Now the exits are teeth.\n\nIf anyone finds this: the book is the key. Not the words — the IDEA. It was always about the idea. Build something real. Build something that isn\'t just a machine for—"\n\nThe entry ends there. His pen made a long line down the page, like his hand was dragged away.\n\nI\'m going to keep reading the book.' },
   { zone: 5, type: 'boss', title: 'INCIDENT REPORT: KEVIN THE INTERN',
     body: 'A "hero" named Kevin tried to raid us. Kitchen pot on his head, wooden sword, acceptance letter from the Heroes\' Guild crumpled in his pocket.\n\nMid-fight, he started crying and told us everything: The Heroes\' Guild sends interns into dungeons as "field training." None of them come back. The Guild calls it "natural attrition." Kevin called it "murder with extra steps."\n\nWe offered him a job. A REAL job. With a title and everything: Chief Suggestion Officer.\n\nHe asked if we had dental. We don\'t know what that means, but we said yes.\n\nKevin is the first person to ever CHOOSE to join Goblin Inc. That matters more than I expected.' },
@@ -1106,8 +1106,8 @@ function checkUnlocks() {
     unlock('tabResearch', 'Ideas are flowing. The MBA book calls this "R&D." You call it "sitting on a rock and thinking." The Research tab is now available.');
   if (Math.floor(r.goblins) >= 1 || z.cleared.length > 0)
     unlock('tabDungeon', 'The tunnels stretch deeper into the dark. The book says "expand or die." You\'re not sure about the dying part, but exploring can\'t hurt. The Dungeon tab is now available.');
-  if (game.memos.length > 0)
-    unlock('tabMemos');
+  if (game.memos.length > 0 && z.cleared.length >= 1)
+    unlock('tabMemos', 'You found documents in the cleared zone. Official memos from... whatever used to operate down here. The Memos tab is now available.');
   if (game.stats.highestZone >= 9)
     unlock('tabFranchise', 'Chapter 12: "Franchising — When One Location Isn\'t Enough." You could start over in a new dungeon, carrying everything you\'ve learned. The Franchise tab is now available.');
 
