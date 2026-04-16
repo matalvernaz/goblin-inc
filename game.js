@@ -522,6 +522,23 @@ const INTRO_PAGES = [
 
 const CHANGELOG = [
   {
+    version: 'v0.3 — The Balance Patch',
+    date: '2026-04-16',
+    changes: [
+      'Ongoing Research — 5 repeatable upgrades that keep schemes useful all game. Unlocks after clearing the first boss.',
+      'War Rations — fighters now consume food while fighting, scaling with zone strength. Farming stays relevant.',
+      'Combat Drills let you push further within a single run — prestige still matters, but you\'re not stuck without it.',
+      'Zone HP scaling smoothed out — the final zone is still a journey, not a lifetime.',
+      'Fixed multipliers inflating on every save/load (sorry about that, your save is corrected now).',
+      'Fixed log messages freezing after 50 entries.',
+      'Prestige memos now actually show up and survive reloads.',
+      'Starvation no longer fires farmers first (that was mean).',
+      'Fixed ghost casualties killing non-fighting goblins.',
+      'Building and upgrade descriptions now accurately say what they do.',
+      'Lots of smaller bug fixes — see the commit log if you\'re curious.',
+    ],
+  },
+  {
     version: 'v0.2 — Dungeon Overhaul',
     date: '2026-04-15',
     changes: [
