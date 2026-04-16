@@ -13,7 +13,7 @@ const BUILDINGS = {
     desc: 'Goblins dig holes. Sometimes they find gold. Sometimes they find more holes.',
     baseCost: { shinies: 10 },
     costMult: 1.15,
-    effect: (lvl) => `+${fmt(0.15 * lvl)} Shinies/s base (goblins dig faster!)`,
+    effect: (lvl) => `Miners produce ${50 * lvl}% more (+${fmt(0.08 * lvl)}/s base)`,
     unlockZone: 0,
     story: {
       1: 'First goblin grabs rusty pickaxe. Looks at rock. Looks at pickaxe. "We just... hit it?" YES. Hit rock, get shinies. This is BUSINESS.',
@@ -41,7 +41,7 @@ const BUILDINGS = {
     desc: 'Grows mushrooms in the dark. Just like a real farm, except underground and slightly cursed.',
     baseCost: { shinies: 15 },
     costMult: 1.15,
-    effect: (lvl) => `+${fmt(0.1 * lvl)} Food/s base, +${30 * lvl} food cap (assign farmers!)`,
+    effect: (lvl) => `Farmers produce ${50 * lvl}% more, +${30 * lvl} food cap`,
     unlockZone: 0,
     story: {
       1: 'Mushrooms grow FAST in dark. Taste like dirt and sadness but is OUR dirt and sadness. Book says "feed your people." These are our people now.',
@@ -55,7 +55,7 @@ const BUILDINGS = {
     desc: 'A special rock for sitting and having ideas. Very exclusive. One goblin at a time.',
     baseCost: { shinies: 30 },
     costMult: 1.20,
-    effect: (lvl) => `+${fmt(0.05 * lvl)} Schemes/s base (assign thinkers!)`,
+    effect: (lvl) => `Thinkers produce ${50 * lvl}% more (+${fmt(0.03 * lvl)}/s base)`,
     unlockZone: 2,
     story: {
       1: 'Goblin sat on flat rock. Stared at nothing for whole hour. Then said: "What if pickaxes... but SHARPER?" GENIUS. Department of Thinking is born!',
@@ -906,27 +906,36 @@ function getProductionRates() {
   const tradingBonus = 1 + 0.05 * (game.buildings.tradingPost || 0);
   const globalMult = g * tradingBonus;
 
-  // Buildings provide a small base; assigned goblins are the real producers
+  // === CORE LOOP: Buildings MULTIPLY goblin output ===
+  // More building levels = each assigned goblin produces more
+  // More goblins = more workers to assign
+  // But more goblins = more food needed = more farmers needed
+
   const mineLvl = game.buildings.shinyMine || 0;
-  let shiniesPS = mineLvl * 0.15 * game.multipliers.mining * globalMult;
-  // Assigned miners are the main source
-  shiniesPS += game.assignments.mining * 0.8 * game.multipliers.mining * globalMult;
+  const mineBonus = 1 + mineLvl * 0.5;  // each mine level = +50% per miner
+  let shiniesPS = game.assignments.mining * 0.5 * mineBonus * game.multipliers.mining * globalMult;
+  // Tiny trickle from building alone (so it's not zero with no miners)
+  shiniesPS += mineLvl * 0.08 * game.multipliers.mining * globalMult;
   // Middle management
   if (game.flags.middleManagement) {
     shiniesPS += getIdleGoblins() * 0.2 * globalMult;
   }
 
   const farmLvl = game.buildings.mushroomFarm || 0;
-  let foodPS = farmLvl * 0.1 * game.multipliers.food * globalMult;
-  foodPS += game.assignments.farming * 0.6 * game.multipliers.food * globalMult;
+  const farmBonus = 1 + farmLvl * 0.5;  // each farm level = +50% per farmer
+  let foodPS = game.assignments.farming * 0.4 * farmBonus * game.multipliers.food * globalMult;
+  // Small base from building
+  foodPS += farmLvl * 0.08 * game.multipliers.food * globalMult;
   // Goblins eat food — they're hungry little things
   const totalGoblins = Math.floor(game.resources.goblins);
   const foodConsumption = totalGoblins * 0.12;
   const netFoodPS = foodPS - foodConsumption;
 
   const thinkLvl = game.buildings.thinkinRock || 0;
-  let schemesPS = thinkLvl * 0.05 * game.multipliers.schemes * globalMult;
-  schemesPS += game.assignments.thinking * 0.3 * game.multipliers.schemes * globalMult;
+  const thinkBonus = 1 + thinkLvl * 0.5;  // each rock level = +50% per thinker
+  let schemesPS = game.assignments.thinking * 0.2 * thinkBonus * game.multipliers.schemes * globalMult;
+  // Small base from building
+  schemesPS += thinkLvl * 0.03 * game.multipliers.schemes * globalMult;
 
   const hutLvl = game.buildings.goblinHut || 0;
   let goblinsPS = hutLvl * 0.15 * game.multipliers.goblinProd;
@@ -1333,14 +1342,20 @@ const UI = {
     const g = game.multipliers.global * game.multipliers.prestige;
     const tradingBonus = 1 + 0.05 * (game.buildings.tradingPost || 0);
     const gm = g * tradingBonus;
+    const mineLvl = game.buildings.shinyMine || 0;
+    const farmLvl = game.buildings.mushroomFarm || 0;
+    const thinkLvl = game.buildings.thinkinRock || 0;
+    const mineRate = 0.5 * (1 + mineLvl * 0.5) * game.multipliers.mining * gm;
+    const farmRate = 0.4 * (1 + farmLvl * 0.5) * game.multipliers.food * gm;
+    const thinkRate = 0.2 * (1 + thinkLvl * 0.5) * game.multipliers.schemes * gm;
     document.getElementById('assign-mining-effect').textContent =
-      game.assignments.mining > 0 ? `+${fmt(game.assignments.mining * 0.8 * game.multipliers.mining * gm)}/s shinies` : '+0.8/s each';
+      game.assignments.mining > 0 ? `+${fmt(game.assignments.mining * mineRate)}/s` : (mineLvl > 0 ? `${fmt(mineRate)}/s each` : 'need mine');
     document.getElementById('assign-farming-effect').textContent =
-      game.assignments.farming > 0 ? `+${fmt(game.assignments.farming * 0.6 * game.multipliers.food * gm)}/s food` : '+0.6/s each';
+      game.assignments.farming > 0 ? `+${fmt(game.assignments.farming * farmRate)}/s` : (farmLvl > 0 ? `${fmt(farmRate)}/s each` : 'need farm');
     document.getElementById('assign-thinking-effect').textContent =
-      game.assignments.thinking > 0 ? `+${fmt(game.assignments.thinking * 0.3 * game.multipliers.schemes * gm)}/s schemes` : '+0.3/s each';
+      game.assignments.thinking > 0 ? `+${fmt(game.assignments.thinking * thinkRate)}/s` : (thinkLvl > 0 ? `${fmt(thinkRate)}/s each` : 'need rock');
     document.getElementById('assign-fighting-effect').textContent =
-      game.assignments.fighting > 0 ? `Power: ${fmt(getCombatPower())}` : '5 power each';
+      game.assignments.fighting > 0 ? `Power: ${fmt(getCombatPower())}` : '5 pwr each';
   },
 
   _lastBuildState: '',
