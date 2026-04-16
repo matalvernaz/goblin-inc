@@ -442,7 +442,7 @@ const MEMOS = [
 
 const PRESTIGE_PERKS = [
   { id: 'headStart', name: 'Head Start', desc: 'Start with Shinies after franchising',
-    maxLevel: 10, cost: (lvl) => lvl + 1,
+    maxLevel: 10, cost: (lvl) => lvl + 1, grantOnce: true,
     effect: (lvl) => `Start with ${100 * lvl} Shinies`,
     apply: (lvl) => { game.resources.shinies += 100 * lvl; },
   },
@@ -452,7 +452,7 @@ const PRESTIGE_PERKS = [
     apply: (lvl) => { game.multipliers.prestige = 1 + 0.05 * lvl; },
   },
   { id: 'goblinBonus', name: 'Recruitment Drive', desc: 'Start with extra goblins',
-    maxLevel: 10, cost: (lvl) => lvl + 1,
+    maxLevel: 10, cost: (lvl) => lvl + 1, grantOnce: true,
     effect: (lvl) => `Start with ${2 * lvl} goblins`,
     apply: (lvl) => { game.resources.goblins += 2 * lvl; },
   },
@@ -577,6 +577,7 @@ function defaultState() {
     introSeen: false,
     tutorialDismissed: [],
     memos: [],
+    dynamicMemos: [],
     log: [],
     lastTick: Date.now(),
     version: 2,
@@ -607,6 +608,10 @@ function fmtRate(n) {
   return sign + fmt(n) + '/s';
 }
 
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 function announce(msg) {
   const el = document.getElementById('sr-announcements');
   if (el) {
@@ -616,9 +621,12 @@ function announce(msg) {
   }
 }
 
+let _logCounter = 0;
+
 function addLog(msg, type = '') {
   game.log.unshift({ msg, type, time: Date.now() });
   if (game.log.length > 50) game.log.length = 50;
+  _logCounter++;
   // Announce important events to screen readers (not routine saves)
   if (type === 'reward' || type === 'combat' || type === 'story' || type === 'warning') {
     announce(msg);
@@ -648,15 +656,23 @@ const Game = {
       const def = defaultState();
       // Merge saved data with defaults for new fields
       game = deepMerge(def, data);
+      // Reset computed values to defaults — upgrades/perks re-derive them below
+      game.multipliers = { ...def.multipliers };
+      game.bonuses = { ...def.bonuses };
+      game.flags = { ...def.flags };
       // Re-apply purchased upgrades
       for (const uid of game.upgrades) {
         const upg = UPGRADES.find(u => u.id === uid);
         if (upg) upg.apply();
       }
-      // Re-apply prestige perks
+      // Re-apply prestige perks (skip one-time resource grants — already in saved state)
       for (const perk of PRESTIGE_PERKS) {
         const lvl = game.prestige.perks[perk.id] || 0;
-        if (lvl > 0) perk.apply(lvl);
+        if (lvl > 0 && !perk.grantOnce) perk.apply(lvl);
+      }
+      // Restore dynamic memos (prestige memos, etc.)
+      if (game.dynamicMemos) {
+        for (const memo of game.dynamicMemos) MEMOS.push(memo);
       }
       // Offline progress
       const now = Date.now();
@@ -676,13 +692,20 @@ const Game = {
 
   exportSave() {
     const data = btoa(JSON.stringify(game));
-    const ta = document.createElement('textarea');
-    ta.value = data;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    addLog('Save exported to clipboard!', 'reward');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(data).then(
+        () => addLog('Save exported to clipboard!', 'reward'),
+        () => addLog('Clipboard access denied — copy manually from console: ' + data.slice(0, 20) + '...', 'warning'),
+      );
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = data;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      addLog('Save exported to clipboard!', 'reward');
+    }
   },
 
   importSave() {
@@ -692,13 +715,22 @@ const Game = {
       const parsed = JSON.parse(atob(data));
       const def = defaultState();
       game = deepMerge(def, parsed);
+      // Reset computed values to defaults — upgrades/perks re-derive them below
+      game.multipliers = { ...def.multipliers };
+      game.bonuses = { ...def.bonuses };
+      game.flags = { ...def.flags };
       for (const uid of game.upgrades) {
         const upg = UPGRADES.find(u => u.id === uid);
         if (upg) upg.apply();
       }
+      // Skip one-time resource grants — already in saved state
       for (const perk of PRESTIGE_PERKS) {
         const lvl = game.prestige.perks[perk.id] || 0;
-        if (lvl > 0) perk.apply(lvl);
+        if (lvl > 0 && !perk.grantOnce) perk.apply(lvl);
+      }
+      // Restore dynamic memos
+      if (game.dynamicMemos) {
+        for (const memo of game.dynamicMemos) MEMOS.push(memo);
       }
       addLog('Save imported!', 'reward');
       Game.save();
@@ -712,7 +744,9 @@ const Game = {
     if (!confirm('REALLY sure? Last chance.')) return;
     localStorage.removeItem('goblinInc');
     game = defaultState();
-    UI._lastLogLength = 0;
+    UI._lastLogCounter = 0;
+    UI._lastBuildState = '';
+    UI._lastResearchState = '';
     UI.currentTab = 'gather';
     UI.switchTab('gather');
     Game.showIntro();
@@ -879,11 +913,15 @@ const Game = {
     };
     const keepStats = { ...game.stats };
     const keepMemos = [...game.memos];
+    const keepDynamicMemos = [...(game.dynamicMemos || [])];
+    const keepIntroSeen = game.introSeen;
 
     game = defaultState();
     game.prestige = keepPrestige;
     game.stats = keepStats;
     game.memos = keepMemos;
+    game.dynamicMemos = keepDynamicMemos;
+    game.introSeen = keepIntroSeen;
 
     // Re-apply prestige perks
     for (const perk of PRESTIGE_PERKS) {
@@ -1105,8 +1143,8 @@ function tickResources(dt) {
 }
 
 function unassignOne() {
-  // Unassign from last role first
-  const order = ['thinking', 'farming', 'mining', 'fighting'];
+  // Unassign from least-critical role first; keep farmers last to avoid food death spiral
+  const order = ['thinking', 'mining', 'fighting', 'farming'];
   for (const role of order) {
     if (game.assignments[role] > 0) {
       game.assignments[role]--;
@@ -1444,9 +1482,11 @@ const UI = {
     const stateKey = Object.entries(BUILDINGS).map(([id, bld]) => {
       const lvl = game.buildings[id] || 0;
       const cost = getBuildingCost(id, lvl);
-      const affordable = canAfford(cost) ? 1 : 0;
+      // Track per-resource affordability so cost colors update granularly
+      const costKey = Object.entries(cost).map(([res, amt]) =>
+        ((game.resources[res] || 0) >= amt) ? 1 : 0).join('');
       const unlocked = (game.zone.current >= bld.unlockZone || game.zone.cleared.includes(bld.unlockZone - 1) || bld.unlockZone === 0 || lvl > 0) ? 1 : 0;
-      return `${id}:${lvl}:${affordable}:${unlocked}`;
+      return `${id}:${lvl}:${costKey}:${unlocked}`;
     }).join('|');
 
     if (stateKey === UI._lastBuildState) return;
@@ -1491,8 +1531,10 @@ const UI = {
     const stateKey = UPGRADES.map(upg => {
       const purchased = game.upgrades.includes(upg.id) ? 1 : 0;
       const unlocked = (game.zone.current >= upg.unlockZone || game.zone.cleared.includes(upg.unlockZone - 1) || upg.unlockZone === 0) ? 1 : 0;
-      const affordable = (!purchased && canAfford(upg.cost)) ? 1 : 0;
-      return `${upg.id}:${purchased}:${unlocked}:${affordable}`;
+      // Track per-resource affordability so cost colors update granularly
+      const costKey = !purchased ? Object.entries(upg.cost).map(([res, amt]) =>
+        ((game.resources[res] || 0) >= amt) ? 1 : 0).join('') : '';
+      return `${upg.id}:${purchased}:${unlocked}:${costKey}`;
     }).join('|');
 
     if (stateKey === UI._lastResearchState) return;
@@ -1693,17 +1735,17 @@ const UI = {
     container.innerHTML = html;
   },
 
-  _lastLogLength: 0,
+  _lastLogCounter: 0,
 
   renderLog() {
     // Only update DOM when there's a new log message
-    if (game.log.length === UI._lastLogLength) return;
-    UI._lastLogLength = game.log.length;
+    if (_logCounter === UI._lastLogCounter) return;
+    UI._lastLogCounter = _logCounter;
     const container = document.getElementById('log-messages');
     let html = '';
     for (let i = 0; i < Math.min(game.log.length, 10); i++) {
       const entry = game.log[i];
-      html += `<div class="log-msg ${entry.type}">${entry.msg}</div>`;
+      html += `<div class="log-msg ${escapeHtml(entry.type)}">${escapeHtml(entry.msg)}</div>`;
     }
     container.innerHTML = html;
   },
@@ -1758,11 +1800,13 @@ function spawnFloat(amount) {
 }
 
 function addMemo(memo) {
-  const key = (memo.zone || 'p') + ':' + memo.title;
+  const zone = memo.zone != null ? memo.zone : game.zone.current;
+  const key = zone + ':' + memo.title;
   if (!game.memos.includes(key)) {
     game.memos.push(key);
-    // Store dynamic memos in MEMOS array for rendering
-    MEMOS.push({ ...memo, zone: memo.zone || game.zone.current });
+    const fullMemo = { ...memo, zone };
+    MEMOS.push(fullMemo);
+    game.dynamicMemos.push(fullMemo);
   }
 }
 
@@ -1845,7 +1889,7 @@ function init() {
   const tablist = document.getElementById('tabs');
   if (tablist) {
     tablist.addEventListener('keydown', (e) => {
-      const tabs = Array.from(tablist.querySelectorAll('.tab[role="tab"]'));
+      const tabs = Array.from(tablist.querySelectorAll('.tab[role="tab"]:not(.hidden)'));
       const current = tabs.indexOf(document.activeElement);
       if (current === -1) return;
       let next = -1;
