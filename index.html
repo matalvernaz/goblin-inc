@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Goblin Inc. — Corporate Dungeon Management</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <div id="app">
+    <header id="header" role="banner">
+      <div id="title-row">
+        <h1>Goblin Inc.<span class="subtitle">Corporate Dungeon Management</span></h1>
+        <div id="header-buttons" role="toolbar" aria-label="Game controls">
+          <button id="save-btn" onclick="Game.save()" aria-label="Save game">Save</button>
+          <button id="export-btn" onclick="Game.exportSave()" aria-label="Export save to clipboard">Export</button>
+          <button id="import-btn" onclick="Game.importSave()" aria-label="Import save from clipboard">Import</button>
+          <button id="hard-reset-btn" onclick="Game.hardReset()" aria-label="Reset all progress">Reset</button>
+        </div>
+      </div>
+      <div id="resource-bar" role="status" aria-label="Resources" aria-live="polite" aria-atomic="false">
+        <div class="resource" aria-label="Shinies">
+          <span class="res-icon" aria-hidden="true">&#x2728;</span>
+          <span class="res-name">Shinies</span>
+          <span class="res-value" id="shinies-val">0</span>
+          <span class="res-rate" id="shinies-rate" aria-label="Shinies per second"></span>
+        </div>
+        <div class="resource" aria-label="Goblins">
+          <span class="res-icon" aria-hidden="true">&#x1F47A;</span>
+          <span class="res-name">Goblins</span>
+          <span class="res-value" id="goblins-val">0 / 0</span>
+          <span class="res-rate" id="goblins-rate" aria-label="Goblins per second"></span>
+        </div>
+        <div class="resource" aria-label="Food">
+          <span class="res-icon" aria-hidden="true">&#x1F344;</span>
+          <span class="res-name">Food</span>
+          <span class="res-value" id="food-val">0 / 0</span>
+          <span class="res-rate" id="food-rate" aria-label="Food per second"></span>
+        </div>
+        <div class="resource" aria-label="Schemes">
+          <span class="res-icon" aria-hidden="true">&#x1F4A1;</span>
+          <span class="res-name">Schemes</span>
+          <span class="res-value" id="schemes-val">0</span>
+          <span class="res-rate" id="schemes-rate" aria-label="Schemes per second"></span>
+        </div>
+      </div>
+    </header>
+
+    <nav id="tabs" role="tablist" aria-label="Game sections">
+      <button class="tab active" role="tab" aria-selected="true" aria-controls="panel-gather" id="tab-gather" data-tab="gather" onclick="UI.switchTab('gather')">
+        <span class="tab-key" aria-hidden="true">1</span> Gather
+      </button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="panel-build" id="tab-build" data-tab="build" onclick="UI.switchTab('build')">
+        <span class="tab-key" aria-hidden="true">2</span> Build
+      </button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="panel-research" id="tab-research" data-tab="research" onclick="UI.switchTab('research')">
+        <span class="tab-key" aria-hidden="true">3</span> Research
+      </button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="panel-dungeon" id="tab-dungeon" data-tab="dungeon" onclick="UI.switchTab('dungeon')">
+        <span class="tab-key" aria-hidden="true">4</span> Dungeon
+      </button>
+      <button class="tab locked" role="tab" aria-selected="false" aria-controls="panel-franchise" id="tab-franchise" data-tab="franchise" onclick="UI.switchTab('franchise')" aria-disabled="true">
+        <span class="tab-key" aria-hidden="true">5</span> Franchise
+      </button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="panel-memos" id="tab-memos" data-tab="memos" onclick="UI.switchTab('memos')">
+        <span class="tab-key" aria-hidden="true">6</span> Memos
+      </button>
+    </nav>
+
+    <main id="main-content">
+      <!-- Gather Tab -->
+      <section class="tab-panel active" id="panel-gather" role="tabpanel" aria-labelledby="tab-gather">
+        <div class="panel-split">
+          <div class="panel-left">
+            <h2>Mining Operations</h2>
+            <p class="flavor-text" id="gather-flavor">Click the shiny rock. It's company policy.</p>
+            <button id="gather-btn" onclick="Game.gather()" aria-label="Mine shinies">
+              <span class="gather-icon" aria-hidden="true">&#x26CF;</span>
+              <span class="gather-text">Mine Shinies</span>
+              <span class="gather-amount" id="gather-amount">+1</span>
+            </button>
+            <div id="click-stats" aria-label="Click statistics">
+              <p>Per click: <span id="per-click">1</span> Shinies</p>
+              <p>Total clicks: <span id="total-clicks">0</span></p>
+            </div>
+          </div>
+          <div class="panel-right">
+            <h2>Workforce Assignment</h2>
+            <p class="flavor-text">Assign goblins to departments. They don't mind. Mostly.</p>
+            <div id="goblin-assignment" role="group" aria-label="Goblin workforce assignment">
+              <div class="assignment-row">
+                <span class="assign-label" id="label-idle">Idle</span>
+                <span class="assign-count" id="assign-idle" aria-labelledby="label-idle">0</span>
+              </div>
+              <div class="assignment-row" id="assign-row-mining">
+                <button class="assign-btn minus" onclick="Game.unassign('mining')" aria-label="Remove goblin from mining">&#x2212;</button>
+                <span class="assign-label" id="label-mining">Mining</span>
+                <span class="assign-count" id="assign-mining" aria-labelledby="label-mining">0</span>
+                <button class="assign-btn plus" onclick="Game.assign('mining')" aria-label="Assign goblin to mining">+</button>
+                <span class="assign-effect" id="assign-mining-effect" aria-label="Mining production"></span>
+              </div>
+              <div class="assignment-row" id="assign-row-farming">
+                <button class="assign-btn minus" onclick="Game.unassign('farming')" aria-label="Remove goblin from farming">&#x2212;</button>
+                <span class="assign-label" id="label-farming">Farming</span>
+                <span class="assign-count" id="assign-farming" aria-labelledby="label-farming">0</span>
+                <button class="assign-btn plus" onclick="Game.assign('farming')" aria-label="Assign goblin to farming">+</button>
+                <span class="assign-effect" id="assign-farming-effect" aria-label="Farming production"></span>
+              </div>
+              <div class="assignment-row" id="assign-row-thinking">
+                <button class="assign-btn minus" onclick="Game.unassign('thinking')" aria-label="Remove goblin from thinking">&#x2212;</button>
+                <span class="assign-label" id="label-thinking">Thinking</span>
+                <span class="assign-count" id="assign-thinking" aria-labelledby="label-thinking">0</span>
+                <button class="assign-btn plus" onclick="Game.assign('thinking')" aria-label="Assign goblin to thinking">+</button>
+                <span class="assign-effect" id="assign-thinking-effect" aria-label="Thinking production"></span>
+              </div>
+              <div class="assignment-row" id="assign-row-fighting">
+                <button class="assign-btn minus" onclick="Game.unassign('fighting')" aria-label="Remove goblin from fighting">&#x2212;</button>
+                <span class="assign-label" id="label-fighting">Fighting</span>
+                <span class="assign-count" id="assign-fighting" aria-labelledby="label-fighting">0</span>
+                <button class="assign-btn plus" onclick="Game.assign('fighting')" aria-label="Assign goblin to fighting">+</button>
+                <span class="assign-effect" id="assign-fighting-effect" aria-label="Fighting power"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Build Tab -->
+      <section class="tab-panel" id="panel-build" role="tabpanel" aria-labelledby="tab-build">
+        <h2>Construction Department</h2>
+        <p class="flavor-text">Building things is easy when you have goblins. Building things <em>well</em> is another matter.</p>
+        <div id="buildings-list" role="list" aria-label="Available buildings"></div>
+      </section>
+
+      <!-- Research Tab -->
+      <section class="tab-panel" id="panel-research" role="tabpanel" aria-labelledby="tab-research">
+        <h2>Department of Thinking</h2>
+        <p class="flavor-text">Some goblins sat on a rock and had IDEAS. This is what happens next.</p>
+        <div id="upgrades-list" role="list" aria-label="Available research upgrades"></div>
+      </section>
+
+      <!-- Dungeon Tab -->
+      <section class="tab-panel" id="panel-dungeon" role="tabpanel" aria-labelledby="tab-dungeon">
+        <h2>Dungeon Expansion</h2>
+        <p class="flavor-text" id="dungeon-flavor">Send your goblins into the unknown. They'll probably be fine.</p>
+        <div id="zone-info" aria-label="Current zone">
+          <div id="zone-header">
+            <h3 id="zone-name">Zone 1: The Broom Closet</h3>
+            <p id="zone-desc"></p>
+          </div>
+          <div id="zone-combat">
+            <div id="zone-progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Zone clearing progress">
+              <div id="zone-progress-fill"></div>
+              <span id="zone-progress-text" aria-hidden="true">0%</span>
+            </div>
+            <div id="zone-stats" aria-label="Combat statistics">
+              <p>Zone Strength: <span id="zone-strength">5</span></p>
+              <p>Your Power: <span id="player-power">0</span></p>
+              <p>Fighters: <span id="fighter-count">0</span> goblins</p>
+            </div>
+            <div id="zone-controls">
+              <button id="zone-fight-btn" onclick="Game.toggleFight()" aria-label="Send goblins to fight">Send Goblins!</button>
+              <button id="zone-retreat-btn" onclick="Game.retreat()" style="display:none" aria-label="Retreat goblins from zone">Retreat!</button>
+            </div>
+          </div>
+          <div id="zone-rewards" style="display:none" role="alert">
+            <h3>Zone Cleared!</h3>
+            <p id="zone-reward-text"></p>
+            <button onclick="Game.nextZone()" aria-label="Advance to next zone">Advance!</button>
+          </div>
+        </div>
+        <div id="zone-map" aria-label="Explored zones map">
+          <h3>Explored Zones</h3>
+          <div id="zone-list" role="list"></div>
+        </div>
+      </section>
+
+      <!-- Franchise Tab -->
+      <section class="tab-panel" id="panel-franchise" role="tabpanel" aria-labelledby="tab-franchise">
+        <h2>The Franchise Opportunity</h2>
+        <div id="franchise-locked" style="display:none">
+          <p class="flavor-text">Reach Zone 10 to unlock franchising. Your goblins aren't ready for this conversation yet.</p>
+        </div>
+        <div id="franchise-content">
+          <div id="franchise-info">
+            <p class="flavor-text">Close this dungeon and open a new one. You'll lose everything, but your <em>corporate knowledge</em> carries over. That's how business works.</p>
+            <div id="franchise-stats" aria-label="Franchise statistics">
+              <p>Current Zone: <span id="fran-current-zone">1</span></p>
+              <p>Franchise Points available: <span id="fran-points-available">0</span></p>
+              <p>Total Franchise Points: <span id="fran-total-points">0</span></p>
+              <p>Times Franchised: <span id="fran-times">0</span></p>
+              <p>Current Production Bonus: <span id="fran-bonus">+0%</span></p>
+            </div>
+            <button id="franchise-btn" onclick="Game.doPrestige()" aria-label="Franchise your dungeon for prestige points">Franchise!</button>
+          </div>
+          <div id="franchise-perks">
+            <h3>Corporate Perks</h3>
+            <div id="perks-list" role="list" aria-label="Available franchise perks"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Memos Tab -->
+      <section class="tab-panel" id="panel-memos" role="tabpanel" aria-labelledby="tab-memos">
+        <h2>Corporate Memos</h2>
+        <p class="flavor-text">All official communications. Filed in order of decreasing importance (most recent first).</p>
+        <div id="memos-list" role="list" aria-label="Story memos"></div>
+      </section>
+    </main>
+
+    <footer id="log" role="log" aria-label="Game events" aria-live="polite">
+      <div id="log-messages"></div>
+    </footer>
+  </div>
+
+  <!-- Screen reader announcements -->
+  <div id="sr-announcements" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
+
+  <div id="float-container" aria-hidden="true"></div>
+
+  <script src="game.js"></script>
+</body>
+</html>
