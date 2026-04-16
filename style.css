@@ -573,13 +573,16 @@ h3 {
   transform: scale(0.96);
 }
 
-.buy-btn:disabled {
-  background: var(--bg-hover);
+.buy-btn:disabled,
+.buy-btn.btn-unaffordable {
+  background: var(--bg-dark);
   color: var(--text-muted);
   cursor: not-allowed;
+  border: 1px dashed var(--border);
 }
 
-.buy-btn:disabled:active {
+.buy-btn:disabled:active,
+.buy-btn.btn-unaffordable:active {
   transform: none;
 }
 

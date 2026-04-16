@@ -642,15 +642,27 @@ const Game = {
     const bld = BUILDINGS[id];
     const lvl = game.buildings[id] || 0;
     const cost = getBuildingCost(id, lvl);
-    if (!canAfford(cost)) return;
+    if (!canAfford(cost)) {
+      const needed = [];
+      for (const [res, amt] of Object.entries(cost)) {
+        const have = game.resources[res] || 0;
+        if (have < amt) needed.push(`${fmt(amt - have)} more ${res}`);
+      }
+      addLog(`Can't afford ${bld.name} — need ${needed.join(', ')}.`, 'warning');
+      return;
+    }
     payCost(cost);
     game.buildings[id] = lvl + 1;
+    addLog(`Built ${bld.name} (Lv.${lvl + 1})!`, 'reward');
   },
 
   buyUpgrade(id) {
     const upg = UPGRADES.find(u => u.id === id);
     if (!upg || game.upgrades.includes(id)) return;
-    if (!canAfford(upg.cost)) return;
+    if (!canAfford(upg.cost)) {
+      addLog(`Can't afford ${upg.name} yet.`, 'warning');
+      return;
+    }
     payCost(upg.cost);
     game.upgrades.push(id);
     upg.apply();
@@ -1050,7 +1062,13 @@ const UI = {
       activeTab.setAttribute('aria-selected', 'true');
     }
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    document.getElementById(`panel-${tab}`)?.classList.add('active');
+    const panel = document.getElementById(`panel-${tab}`);
+    if (panel) {
+      panel.classList.add('active');
+      // Move focus to the panel so screen readers announce it
+      panel.setAttribute('tabindex', '-1');
+      panel.focus();
+    }
   },
 
   render() {
@@ -1196,11 +1214,11 @@ const UI = {
           <div class="building-effect">${bld.effect(lvl + 1)}</div>
         </div>
         <div class="building-buy">
-          <button class="buy-btn" onclick="Game.buyBuilding('${id}')" ${affordable ? '' : 'disabled'}
-            aria-label="Build ${bld.name} level ${lvl + 1}, costs ${formatCostText(cost)}">
-            Build${lvl > 0 ? ' +1' : ''}
+          <button class="buy-btn ${affordable ? '' : 'btn-unaffordable'}" onclick="Game.buyBuilding('${id}')"
+            aria-label="${affordable ? 'Build' : 'Cannot afford'} ${bld.name} level ${lvl + 1}, costs ${formatCostText(cost)}">
+            ${affordable ? (lvl > 0 ? 'Build +1' : 'Build') : 'Need Shinies'}
           </button>
-          <div class="building-cost" aria-hidden="true">${formatCost(cost, affordable)}</div>
+          <div class="building-cost">${formatCost(cost, affordable)}</div>
         </div>
       </div>`;
     }
@@ -1239,11 +1257,11 @@ const UI = {
             <div class="building-effect">${upg.effect}</div>
           </div>
           <div class="building-buy">
-            <button class="buy-btn" onclick="Game.buyUpgrade('${upg.id}')" ${affordable ? '' : 'disabled'}
-              aria-label="Research ${upg.name}, costs ${formatCostText(upg.cost)}. ${upg.effect}">
-              Research
+            <button class="buy-btn ${affordable ? '' : 'btn-unaffordable'}" onclick="Game.buyUpgrade('${upg.id}')"
+              aria-label="${affordable ? 'Research' : 'Cannot afford'} ${upg.name}, costs ${formatCostText(upg.cost)}. ${upg.effect}">
+              ${affordable ? 'Research' : 'Need Schemes'}
             </button>
-            <div class="building-cost" aria-hidden="true">${formatCost(upg.cost, affordable)}</div>
+            <div class="building-cost">${formatCost(upg.cost, affordable)}</div>
           </div>
         </div>`;
       }
