@@ -457,9 +457,9 @@ const PRESTIGE_PERKS = [
     apply: (lvl) => { game.resources.goblins += 2 * lvl; },
   },
   { id: 'combatBonus', name: 'Veteran Fighters', desc: 'Permanent combat power bonus',
-    maxLevel: 15, cost: (lvl) => lvl + 2,
-    effect: (lvl) => `+${10 * lvl}% combat power`,
-    apply: (lvl) => { game.multipliers.prestigeCombat = 1 + 0.1 * lvl; },
+    maxLevel: 50, cost: (lvl) => lvl + 2,
+    effect: (lvl) => `${Math.pow(1.12, lvl).toFixed(1)}x combat power`,
+    apply: (lvl) => { game.multipliers.prestigeCombat = Math.pow(1.12, lvl); },
   },
   { id: 'clickBonus', name: 'Strong Arms', desc: 'Permanent click power bonus',
     maxLevel: 10, cost: (lvl) => lvl + 1,
@@ -537,7 +537,7 @@ const TUTORIAL = [
     done: () => (game.buildings.shinyMine || 0) >= 2 || (game.buildings.mushroomFarm || 0) >= 2 },
   { id: 'unlockDungeon',
     text: 'Tunnels go deep. Weird noises down there. Skeleton-man came from down there. Part of us says don\'t go. Bigger part says... we HAVE to know. Assign goblins to Fighting and send them in!',
-    condition: () => game.unlocks.tabDungeon,
+    condition: () => game.unlocks.assignFighting,
     done: () => game.zone.cleared.length >= 1 },
   { id: 'keepGoing',
     text: 'More rooms down there. Found something on the wall — a big hand doing a thumbs up. Old. Creepy. What WAS this place? Only one way to find out.',
@@ -559,7 +559,7 @@ function defaultState() {
       prestige: 1, prestigeCombat: 1, prestigeClick: 1,
     },
     bonuses: { maxGoblins: 0, foodCap: 0 },
-    flags: { overtimePay: false, middleManagement: false, visitedDungeon: false },
+    flags: { overtimePay: false, middleManagement: false },
     stats: { totalClicks: 0, totalShinies: 0, highestZone: 0, totalZonesCleared: 0 },
     unlocks: {},
     introSeen: false,
@@ -984,9 +984,9 @@ function getCombatPower() {
 }
 
 function getZoneStats(zoneIdx) {
-  const hp = 50 * Math.pow(1.55, zoneIdx);
-  const str = 5 * Math.pow(1.45, zoneIdx);
-  const reward = Math.floor(20 * Math.pow(1.5, zoneIdx));
+  const hp = 200 * (zoneIdx + 1) * Math.pow(1.4, zoneIdx);
+  const str = 5 * Math.pow(1.35, zoneIdx);
+  const reward = Math.floor(25 * Math.pow(1.6, zoneIdx));
   return { hp, str, reward };
 }
 
@@ -1105,13 +1105,8 @@ function tickCombat(dt) {
   const power = getCombatPower();
   const zs = getZoneStats(game.zone.current);
 
-  if (power < zs.str * 0.2) {
-    game.zone.fighting = false;
-    addLog('Your goblins took one look and refused. They\'re not stupid.', 'warning');
-    return;
-  }
-
-  const dps = Math.max(0, power - zs.str * 0.3);
+  // Ratio formula: strong vs weak = fast, underpowered = glacially slow
+  const dps = power * power / (power + zs.str);
   game.zone.progress += (dps / zs.hp) * 100 * dt;
 
   if (game.zone.progress >= 100) {
@@ -1171,7 +1166,7 @@ function checkUnlocks() {
   if (u.workforce) unlock('assignMining');
   if (u.workforce && (b.mushroomFarm || 0) >= 1) unlock('assignFarming');
   if (u.workforce && (b.thinkinRock || 0) >= 1) unlock('assignThinking');
-  if (u.workforce && game.flags.visitedDungeon) unlock('assignFighting');
+  if (u.workforce && Math.floor(r.goblins) >= 3) unlock('assignFighting');
 }
 
 function tick() {
@@ -1211,7 +1206,6 @@ const UI = {
     if (unlockKey && !game.unlocks[unlockKey]) return;
 
     UI.currentTab = tab;
-    if (tab === 'dungeon') game.flags.visitedDungeon = true;
     document.querySelectorAll('.tab[role="tab"]').forEach(t => {
       t.classList.remove('active');
       t.setAttribute('aria-selected', 'false');
@@ -1528,6 +1522,21 @@ const UI = {
     document.getElementById('player-power').textContent = fmt(power);
     document.getElementById('fighter-count').textContent = game.assignments.fighting;
 
+    // Estimated clear time
+    const etaRow = document.getElementById('zone-eta-row');
+    const etaEl = document.getElementById('zone-eta');
+    if (power > 0 && !cleared) {
+      const combatDps = power * power / (power + zs.str);
+      const remaining = (100 - game.zone.progress) / 100 * zs.hp;
+      const secs = remaining / combatDps;
+      if (secs < 60) etaEl.textContent = `${Math.ceil(secs)}s`;
+      else if (secs < 3600) etaEl.textContent = `${Math.ceil(secs / 60)}m`;
+      else etaEl.textContent = `${(secs / 3600).toFixed(1)}h`;
+      etaRow.style.display = '';
+    } else {
+      etaRow.style.display = 'none';
+    }
+
     const progress = Math.min(game.zone.progress, 100);
     document.getElementById('zone-progress-fill').style.width = progress + '%';
     document.getElementById('zone-progress-text').textContent = progress.toFixed(1) + '%';
@@ -1735,8 +1744,6 @@ function deepMerge(target, source) {
 
 function init() {
   Game.load();
-  // Backfill for saves from before visitedDungeon flag existed
-  if (game.zone.cleared.length > 0) game.flags.visitedDungeon = true;
   _silentUnlocks = true;
   checkUnlocks();
   _silentUnlocks = false;
