@@ -511,6 +511,174 @@ const REPEATABLE_UPGRADES = [
   },
 ];
 
+// Achievements are permanent milestones earned for progress, hoarding, and
+// weird play. Every one grants a small permanent multiplier. `check` is
+// evaluated every tick for auto-detection; `null` means it's granted manually
+// at a specific hook (franchise time, zone clear).
+const ACHIEVEMENTS = [
+  // --- Attendance (zone progress) ---
+  { id: 'clear1', name: 'Made It Past Day One', cat: 'Attendance',
+    hint: 'Clear Zone 1. Hit rock. Don\'t die.', reward: '+5% click power',
+    unlocked: 'Hit rock. Found shiny. Did NOT die. Book call this "mo-men-tum."',
+    check: () => game.stats.highestZone >= 1,
+    apply: () => { game.multipliers.click *= 1.05; } },
+  { id: 'clear5', name: 'Through Orientation', cat: 'Attendance',
+    hint: 'Clear Zone 5 and defeat the first boss.', reward: '+5% shiny production',
+    unlocked: 'Kevin handed in resignation. Voluntarily! From heroes\' guild to GOBLIN INC. Trajectory: upward.',
+    check: () => game.stats.highestZone >= 5,
+    apply: () => { game.multipliers.mining *= 1.05; } },
+  { id: 'clear10', name: 'Middle Management Material', cat: 'Attendance',
+    hint: 'Clear Zone 10.', reward: '+5% goblin recruitment rate',
+    unlocked: 'Defeated Sir Reginald the Adequate. He kept sword. We kept shield. Book calls this "win-win."',
+    check: () => game.stats.highestZone >= 10,
+    apply: () => { game.multipliers.goblinProd *= 1.05; } },
+  { id: 'clear15', name: 'Corner Office Candidate', cat: 'Attendance',
+    hint: 'Clear Zone 15.', reward: '+5% scheme production',
+    unlocked: 'Beat Chad. Chad cried. Chad is now VP of Saying Sorry. Promotion path unclear.',
+    check: () => game.stats.highestZone >= 15,
+    apply: () => { game.multipliers.schemes *= 1.05; } },
+  { id: 'clear20', name: 'Senior Leadership', cat: 'Attendance',
+    hint: 'Clear Zone 20.', reward: '+10% combat power',
+    unlocked: 'Cynthia argued her case to the dungeon itself. Dungeon ruled in our favor. We have a LAWYER now.',
+    check: () => game.stats.highestZone >= 20,
+    apply: () => { game.multipliers.combat *= 1.10; } },
+  { id: 'clear25', name: 'Multiverse Executive', cat: 'Attendance',
+    hint: 'Clear Zone 25.', reward: '+10% global production',
+    unlocked: 'Beat Other Goblin who read wrong book. They had carpet. We have better book. Victory.',
+    check: () => game.stats.highestZone >= 25,
+    apply: () => { game.multipliers.global *= 1.10; } },
+  { id: 'clear30', name: 'Chairman of the Board', cat: 'Attendance',
+    hint: 'Clear Zone 30. Meet The Hand.', reward: '+25% global production',
+    unlocked: 'Chair was empty. Always was. Sat in it anyway. Made room for everyone. End of book. Also beginning.',
+    check: () => game.stats.highestZone >= 30,
+    apply: () => { game.multipliers.global *= 1.25; } },
+
+  // --- Productivity (hoarding) ---
+  { id: 'shiny1k', name: 'Penny Pincher', cat: 'Productivity',
+    hint: 'Hold 1,000 Shinies at once.', reward: '+3% shiny production',
+    unlocked: 'First thousand shinies. Counted three times. Still thousand. PROBABLY.',
+    check: () => game.resources.shinies >= 1000,
+    apply: () => { game.multipliers.mining *= 1.03; } },
+  { id: 'shiny1m', name: 'Shiny Baron', cat: 'Productivity',
+    hint: 'Hold 1,000,000 Shinies at once.', reward: '+5% shiny production',
+    unlocked: 'Million shinies at once. Too many to count. Delegation: learned it.',
+    check: () => game.resources.shinies >= 1e6,
+    apply: () => { game.multipliers.mining *= 1.05; } },
+  { id: 'food500', name: 'Well-Fed', cat: 'Productivity',
+    hint: 'Store 500 Food.', reward: '+3% food production',
+    unlocked: 'Nobody hungry. First time ever. Goblins asking for SECONDS. Is weird. Good weird.',
+    check: () => game.resources.food >= 500,
+    apply: () => { game.multipliers.food *= 1.03; } },
+  { id: 'food10k', name: 'Mushroom Mogul', cat: 'Productivity',
+    hint: 'Store 10,000 Food.', reward: '+5% food production',
+    unlocked: 'So many mushrooms we opened mushroom MUSEUM. Mushroom tour. Mushroom gift shop.',
+    check: () => game.resources.food >= 1e4,
+    apply: () => { game.multipliers.food *= 1.05; } },
+  { id: 'schemes1k', name: 'Big Brain Time', cat: 'Productivity',
+    hint: 'Hold 1,000 Schemes at once.', reward: '+3% scheme production',
+    unlocked: 'Thousand ideas! Some of them GOOD! Is statistically likely!',
+    check: () => game.resources.schemes >= 1000,
+    apply: () => { game.multipliers.schemes *= 1.03; } },
+  { id: 'schemes100k', name: 'Idea Factory', cat: 'Productivity',
+    hint: 'Hold 100,000 Schemes at once.', reward: '+5% scheme production',
+    unlocked: 'Thinkin\' Rock has shift rotation now. Three-rock system. Ideas ASSEMBLY LINE.',
+    check: () => game.resources.schemes >= 1e5,
+    apply: () => { game.multipliers.schemes *= 1.05; } },
+
+  // --- Workforce (goblin count) ---
+  { id: 'gob10', name: 'Small Business', cat: 'Workforce',
+    hint: 'Have 10 goblins at once.', reward: '+3% goblin recruitment',
+    unlocked: 'Ten goblins! Ten names! Ten opinions about what a PIZZA is!',
+    check: () => Math.floor(game.resources.goblins) >= 10,
+    apply: () => { game.multipliers.goblinProd *= 1.03; } },
+  { id: 'gob50', name: 'Growing Enterprise', cat: 'Workforce',
+    hint: 'Have 50 goblins at once.', reward: '+5% goblin recruitment',
+    unlocked: 'Fifty goblins. Need name tags. Grik made them. Spelled every one wrong. Goblins love them anyway.',
+    check: () => Math.floor(game.resources.goblins) >= 50,
+    apply: () => { game.multipliers.goblinProd *= 1.05; } },
+  { id: 'gob100', name: 'Goblin City', cat: 'Workforce',
+    hint: 'Have 100 goblins at once.', reward: '+10% goblin recruitment',
+    unlocked: 'Hundred goblins. HR department is one goblin in a hat. Very busy hat.',
+    check: () => Math.floor(game.resources.goblins) >= 100,
+    apply: () => { game.multipliers.goblinProd *= 1.10; } },
+  { id: 'gob250', name: 'The Horde', cat: 'Workforce',
+    hint: 'Have 250 goblins at once.', reward: '+5% global production',
+    unlocked: 'Two hundred fifty goblins. Not a company anymore. Tiny CITY. All voluntary. All weird.',
+    check: () => Math.floor(game.resources.goblins) >= 250,
+    apply: () => { game.multipliers.global *= 1.05; } },
+
+  // --- Franchising ---
+  { id: 'fran1', name: 'Repeat Customer', cat: 'Franchising',
+    hint: 'Franchise once.', reward: '+5% Franchise Point gain',
+    unlocked: 'First franchise. Dungeon collapsed behind us. We know how it all works now. Mostly.',
+    check: () => game.prestige.times >= 1,
+    apply: () => { game.multipliers.fpGain *= 1.05; } },
+  { id: 'fran5', name: 'Serial Franchiser', cat: 'Franchising',
+    hint: 'Franchise 5 times.', reward: '+10% Franchise Point gain',
+    unlocked: 'Five franchises. Every one easier. Book also easier. Maybe we getting smart-er.',
+    check: () => game.prestige.times >= 5,
+    apply: () => { game.multipliers.fpGain *= 1.10; } },
+  { id: 'fran10', name: 'Franchise Mogul', cat: 'Franchising',
+    hint: 'Franchise 10 times.', reward: '+15% Franchise Point gain',
+    unlocked: 'Ten dungeons. Same story, different carpet. Book works EVERYWHERE.',
+    check: () => game.prestige.times >= 10,
+    apply: () => { game.multipliers.fpGain *= 1.15; } },
+  { id: 'fran25', name: 'Franchise Legend', cat: 'Franchising',
+    hint: 'Franchise 25 times.', reward: '+25% Franchise Point gain',
+    unlocked: 'Twenty-five franchises. Could do this in sleep. Sometimes do. Wake up with MORE shinies.',
+    check: () => game.prestige.times >= 25,
+    apply: () => { game.multipliers.fpGain *= 1.25; } },
+
+  // --- Variety (weird play) ---
+  { id: 'minimalist', name: 'Know When To Quit', cat: 'Variety',
+    hint: 'Franchise at exactly Zone 10 (no further).', reward: '+10% Franchise Point gain',
+    unlocked: 'Cleared ten zones. Called it. Franchised. Book Chapter Three: "Know When To Quit." We KNEW.',
+    check: null, // granted at franchise time
+    apply: () => { game.multipliers.fpGain *= 1.10; } },
+  { id: 'soloAct', name: 'Solo Act', cat: 'Variety',
+    hint: 'Clear any zone with exactly 1 goblin assigned to Fighting.', reward: '+10% combat power',
+    unlocked: 'One goblin. One zone. Slow victory. Brag rights: eternal.',
+    check: null, // granted at zone clear
+    apply: () => { game.multipliers.combat *= 1.10; } },
+  { id: 'scholar', name: 'Corporate Scholar', cat: 'Variety',
+    hint: 'Research every non-repeatable upgrade in one run.', reward: '+10% scheme production',
+    unlocked: 'Read entire book. Even in-dex. Especially in-dex. (Best chapter.)',
+    check: () => UPGRADES.every(u => game.upgrades.includes(u.id)),
+    apply: () => { game.multipliers.schemes *= 1.10; } },
+  { id: 'completionist', name: 'Edifice Complex', cat: 'Variety',
+    hint: 'Own every building at level 10 or higher.', reward: '+10% global production',
+    unlocked: 'Every building. All level 10. Dungeon looks GOOD. Even the skeleton impressed. (Still dead.)',
+    check: () => Object.keys(BUILDINGS).every(id => (game.buildings[id] || 0) >= 10),
+    apply: () => { game.multipliers.global *= 1.10; } },
+  { id: 'longroad', name: 'The Long Road', cat: 'Variety',
+    hint: 'Clear Zone 30 without ever franchising.', reward: '+25% global production',
+    unlocked: 'Stuck with first dungeon. All the way to bottom. Friends said franchise. We said no. Cool thing: done.',
+    check: () => game.stats.highestZone >= 30 && game.prestige.times === 0,
+    apply: () => { game.multipliers.global *= 1.25; } },
+
+  // --- Cumulative (lifetime stats) ---
+  { id: 'clicks10k', name: 'Clickathon', cat: 'Cumulative',
+    hint: 'Click the rock 10,000 times total.', reward: '+25% click power',
+    unlocked: 'Ten thousand clicks. Arm is LEGEND. Arm has own sign. Sign says: "This arm is legend."',
+    check: () => game.stats.totalClicks >= 10000,
+    apply: () => { game.multipliers.click *= 1.25; } },
+  { id: 'careerShiny1m', name: 'Lifetime Earner', cat: 'Cumulative',
+    hint: 'Earn 1,000,000 Shinies in total across all runs.', reward: '+5% shiny production',
+    unlocked: 'Million shinies, career total. Quarterly report says: MORE.',
+    check: () => game.stats.totalShinies >= 1e6,
+    apply: () => { game.multipliers.mining *= 1.05; } },
+  { id: 'careerShiny1b', name: 'Dungeon Tycoon', cat: 'Cumulative',
+    hint: 'Earn 1,000,000,000 Shinies in total.', reward: '+10% shiny production',
+    unlocked: 'Billion shinies. Career. Would retire but we like it here.',
+    check: () => game.stats.totalShinies >= 1e9,
+    apply: () => { game.multipliers.mining *= 1.10; } },
+  { id: 'zones100', name: 'Career Mileage', cat: 'Cumulative',
+    hint: 'Clear 100 zones total across all franchises.', reward: '+5% global production',
+    unlocked: 'Hundred zones. Many dungeons. Same book. Different goblins. All chose to be here.',
+    check: () => game.stats.totalZonesCleared >= 100,
+    apply: () => { game.multipliers.global *= 1.05; } },
+];
+
 const INTRO_PAGES = [
   '<p>You are <span class="intro-emphasis">goblin</span>.</p><p>Always been goblin. Live in dungeon. Never thought about why. None of us do. Goblins don\'t think about things. We eat, we sleep, we fight over scraps in the dark.</p><p>That\'s just how it is.</p>',
   '<p>But today, in back of broom closet, you find <span class="intro-emphasis">dead thing</span>.</p><p>Not regular dead thing. This one wearing FANCY clothes. Has little card on chest that says <span class="intro-gold">"Regional Manager."</span> Don\'t know what that means. Sounds important.</p><p>Under dead thing: a book.</p>',
@@ -521,6 +689,18 @@ const INTRO_PAGES = [
 
 
 const CHANGELOG = [
+  {
+    version: 'v0.4 — Corporate Awards',
+    date: '2026-04-16',
+    changes: [
+      'Corporate Awards — 30 permanent achievements across six categories. Each grants a small stacking bonus that survives franchising.',
+      'Six categories: Attendance (zone progress), Productivity (hoarding), Workforce (goblin count), Franchising, Variety (weird play), and Cumulative (lifetime stats).',
+      'Awards tab unlocks the first time you earn one. Keyboard shortcut: 7.',
+      'New weird-play rewards: clear a zone with exactly one fighter, franchise at exactly Zone 10, research every upgrade in a single run, clear Zone 30 without ever franchising.',
+      'Franchise Points now scale with your FP-gain bonuses from awards.',
+      'Existing saves carry over — any awards you already qualify for are granted on your first tick back.',
+    ],
+  },
   {
     version: 'v0.3 — The Balance Patch',
     date: '2026-04-16',
@@ -627,11 +807,13 @@ function defaultState() {
       click: 1, mining: 1, food: 1, schemes: 1, global: 1,
       traps: 1, combat: 1, goblinProd: 1,
       prestige: 1, prestigeCombat: 1, prestigeClick: 1,
+      fpGain: 1,
     },
     bonuses: { maxGoblins: 0, foodCap: 0 },
     flags: { overtimePay: false, middleManagement: false },
     stats: { totalClicks: 0, totalShinies: 0, highestZone: 0, totalZonesCleared: 0 },
     repeatableUpgrades: {},
+    achievements: { unlocked: [], times: {} },
     unlocks: {},
     introSeen: false,
     tutorialDismissed: [],
@@ -735,6 +917,10 @@ const Game = {
         const n = game.repeatableUpgrades?.[rup.id] || 0;
         if (n > 0) rup.applyAll(n);
       }
+      // Re-apply achievement bonuses
+      for (const ach of ACHIEVEMENTS) {
+        if (game.achievements?.unlocked?.includes(ach.id)) ach.apply();
+      }
       // Restore dynamic memos (prestige memos, etc.)
       if (game.dynamicMemos) {
         for (const memo of game.dynamicMemos) MEMOS.push(memo);
@@ -797,6 +983,10 @@ const Game = {
       for (const rup of REPEATABLE_UPGRADES) {
         const n = game.repeatableUpgrades?.[rup.id] || 0;
         if (n > 0) rup.applyAll(n);
+      }
+      // Re-apply achievement bonuses
+      for (const ach of ACHIEVEMENTS) {
+        if (game.achievements?.unlocked?.includes(ach.id)) ach.apply();
       }
       // Restore dynamic memos
       if (game.dynamicMemos) {
@@ -1001,6 +1191,13 @@ const Game = {
     const keepMemos = [...game.memos];
     const keepDynamicMemos = [...(game.dynamicMemos || [])];
     const keepIntroSeen = game.introSeen;
+    const keepAchievements = {
+      unlocked: [...(game.achievements?.unlocked || [])],
+      times: { ...(game.achievements?.times || {}) },
+    };
+
+    // "Minimalist Management" — franchised at exactly Zone 10 (index 9), no further
+    const minimalist = game.zone.current === 9;
 
     game = defaultState();
     game.prestige = keepPrestige;
@@ -1008,12 +1205,19 @@ const Game = {
     game.memos = keepMemos;
     game.dynamicMemos = keepDynamicMemos;
     game.introSeen = keepIntroSeen;
+    game.achievements = keepAchievements;
 
     // Re-apply prestige perks
     for (const perk of PRESTIGE_PERKS) {
       const lvl = game.prestige.perks[perk.id] || 0;
       if (lvl > 0) perk.apply(lvl);
     }
+    // Re-apply achievement bonuses (they survive franchising)
+    for (const ach of ACHIEVEMENTS) {
+      if (game.achievements.unlocked.includes(ach.id)) ach.apply();
+    }
+    // Grant minimalist after re-apply so its bonus multiplies into the fresh state
+    if (minimalist) grantAchievement('minimalist');
 
     addLog(`Franchised! Earned ${points} Franchise Points.`, 'reward');
     addMemo({
@@ -1163,7 +1367,37 @@ function payCost(cost) {
 function getPrestigePoints() {
   const zone = game.zone.current;
   if (zone < 9) return 0;
-  return Math.floor(Math.pow(zone + 1, 1.5));
+  const mult = game.multipliers.fpGain || 1;
+  return Math.floor(Math.pow(zone + 1, 1.5) * mult);
+}
+
+function grantAchievement(id) {
+  const ach = ACHIEVEMENTS.find(a => a.id === id);
+  if (!ach) return;
+  if (!game.achievements) game.achievements = { unlocked: [], times: {} };
+  if (game.achievements.unlocked.includes(id)) return;
+  game.achievements.unlocked.push(id);
+  game.achievements.times[id] = Date.now();
+  ach.apply();
+  addLog(`Award unlocked — ${ach.name}: ${ach.reward}`, 'reward');
+  // Unlock the Awards tab on first earn
+  if (!game.unlocks.tabAwards) {
+    game.unlocks.tabAwards = true;
+    addLog('Got first corporate AWARD. Hung it on wall. Awards tab ready!', 'story');
+  }
+  // Force UI rebuild
+  if (typeof UI !== 'undefined') {
+    UI._lastAwardsState = '';
+  }
+}
+
+function checkAchievements() {
+  if (!game.achievements) game.achievements = { unlocked: [], times: {} };
+  for (const ach of ACHIEVEMENTS) {
+    if (!ach.check) continue;
+    if (game.achievements.unlocked.includes(ach.id)) continue;
+    if (ach.check()) grantAchievement(ach.id);
+  }
 }
 
 function getPrestigeFlavorText(times) {
@@ -1286,6 +1520,8 @@ function tickCombat(dt) {
     game.zone.casualtyAccum = 0;
     game.zone.cleared.push(game.zone.current);
     game.stats.totalZonesCleared++;
+    // Solo Act: cleared a zone with exactly 1 fighter assigned
+    if (game.assignments.fighting === 1) grantAchievement('soloAct');
 
     const z = ZONES[game.zone.current] || {};
     const reward = zs.reward;
@@ -1355,6 +1591,7 @@ function tick() {
   // Cap combat to 1s per frame — no catch-up (requires active play)
   tickCombat(Math.min(elapsed, 1));
   checkUnlocks();
+  checkAchievements();
 }
 
 function checkMemos() {
@@ -1378,7 +1615,7 @@ const UI = {
     // Check if tab is unlocked
     const tabUnlockMap = {
       build: 'tabBuild', research: 'tabResearch', dungeon: 'tabDungeon',
-      memos: 'tabMemos', franchise: 'tabFranchise',
+      memos: 'tabMemos', franchise: 'tabFranchise', awards: 'tabAwards',
     };
     const unlockKey = tabUnlockMap[tab];
     if (unlockKey && !game.unlocks[unlockKey]) return;
@@ -1415,6 +1652,7 @@ const UI = {
       case 'dungeon': UI.renderDungeon(); break;
       case 'franchise': UI.renderFranchise(); break;
       case 'memos': UI.renderMemos(); break;
+      case 'awards': UI.renderAwards(); break;
     }
     UI.renderLog();
   },
@@ -1427,6 +1665,7 @@ const UI = {
     toggle('tab-dungeon', u.tabDungeon);
     toggle('tab-memos', u.tabMemos);
     toggle('tab-franchise', u.tabFranchise);
+    toggle('tab-awards', u.tabAwards);
 
     // Resources
     toggle('res-food', u.resFood);
@@ -1891,6 +2130,50 @@ const UI = {
     container.innerHTML = html;
   },
 
+  _lastAwardsState: '',
+
+  renderAwards() {
+    const unlocked = new Set(game.achievements?.unlocked || []);
+    // Fingerprint: unlocked set changes rarely, rebuild only when it does
+    const stateKey = [...unlocked].sort().join(',') + ':' + ACHIEVEMENTS.length;
+    if (stateKey === UI._lastAwardsState) return;
+    UI._lastAwardsState = stateKey;
+
+    const summary = document.getElementById('awards-summary');
+    summary.textContent = `Earned ${unlocked.size} of ${ACHIEVEMENTS.length} awards.`;
+
+    // Group by category, preserving declaration order within each
+    const order = [];
+    const byCat = {};
+    for (const ach of ACHIEVEMENTS) {
+      if (!byCat[ach.cat]) { byCat[ach.cat] = []; order.push(ach.cat); }
+      byCat[ach.cat].push(ach);
+    }
+
+    const container = document.getElementById('awards-list');
+    let html = '';
+    for (const cat of order) {
+      const catUnlocked = byCat[cat].filter(a => unlocked.has(a.id)).length;
+      html += `<h3 class="awards-category">${cat} <span class="awards-cat-count">(${catUnlocked}/${byCat[cat].length})</span></h3>`;
+      for (const ach of byCat[cat]) {
+        const earned = unlocked.has(ach.id);
+        const body = earned ? ach.unlocked : ach.hint;
+        const ariaLabel = earned
+          ? `Earned: ${ach.name}. ${ach.reward}.`
+          : `Locked: ${ach.name}. ${ach.hint} Reward: ${ach.reward}.`;
+        html += `<div class="award-card ${earned ? 'award-earned' : 'award-locked'}" role="listitem" aria-label="${escapeHtml(ariaLabel)}">
+          <div class="award-icon" aria-hidden="true">${earned ? '&#x1F3C6;' : '&#x1F512;'}</div>
+          <div class="award-info">
+            <div class="award-name">${escapeHtml(ach.name)}${earned ? ' <span class="award-earned-tag">EARNED</span>' : ''}</div>
+            <div class="award-body">${escapeHtml(body)}</div>
+            <div class="award-reward">${escapeHtml(ach.reward)}</div>
+          </div>
+        </div>`;
+      }
+    }
+    container.innerHTML = html;
+  },
+
   _lastLogCounter: 0,
 
   renderLog() {
@@ -2029,9 +2312,9 @@ function init() {
       }
     }
 
-    const tabList = ['gather', 'build', 'research', 'dungeon', 'franchise', 'memos'];
+    const tabList = ['gather', 'build', 'research', 'dungeon', 'franchise', 'memos', 'awards'];
     const num = parseInt(e.key);
-    if (num >= 1 && num <= 6) {
+    if (num >= 1 && num <= 7) {
       UI.switchTab(tabList[num - 1]);
     }
     // Space to gather (but not when focused on a button — let buttons handle their own clicks)

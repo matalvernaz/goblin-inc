@@ -72,6 +72,9 @@
       <button class="tab hidden" role="tab" aria-selected="false" aria-controls="panel-memos" id="tab-memos" data-tab="memos" onclick="UI.switchTab('memos')">
         <span class="tab-key" aria-hidden="true">6</span> Memos
       </button>
+      <button class="tab hidden" role="tab" aria-selected="false" aria-controls="panel-awards" id="tab-awards" data-tab="awards" onclick="UI.switchTab('awards')">
+        <span class="tab-key" aria-hidden="true">7</span> Awards
+      </button>
     </nav>
 
     <main id="main-content">
@@ -225,6 +228,14 @@
         <h2>Corporate Memos</h2>
         <p class="flavor-text">All official communications. Filed in order of decreasing importance (most recent first).</p>
         <div id="memos-list" role="list" aria-label="Story memos"></div>
+      </section>
+
+      <!-- Awards Tab -->
+      <section class="tab-panel" id="panel-awards" role="tabpanel" aria-labelledby="tab-awards">
+        <h2>Corporate Awards</h2>
+        <p class="flavor-text">Little plaques for big moments. Each one hangs forever — the bonuses stack across every franchise.</p>
+        <p id="awards-summary" class="awards-summary" aria-live="polite" aria-atomic="true">Earned 0 of 0 awards.</p>
+        <div id="awards-list" role="list" aria-label="Awards"></div>
       </section>
     </main>
 

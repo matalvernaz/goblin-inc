@@ -1299,3 +1299,93 @@ h3 {
   .tab-key { display: none; }
   h1 { font-size: 1.2rem; }
 }
+
+/* --- AWARDS --- */
+.awards-summary {
+  font-size: 0.9rem;
+  color: var(--gold);
+  margin: 8px 0 16px 0;
+  font-weight: 600;
+}
+
+.awards-category {
+  font-size: 1rem;
+  color: var(--purple);
+  margin: 18px 0 8px 0;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 4px;
+}
+
+.awards-cat-count {
+  color: var(--text-dim);
+  font-weight: 400;
+  font-size: 0.85rem;
+}
+
+.award-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  transition: border-color 0.2s;
+}
+
+.award-card.award-earned {
+  border-color: var(--gold-dim);
+}
+
+.award-card.award-locked {
+  opacity: 0.75;
+}
+
+.award-icon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+}
+
+.award-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.award-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--gold);
+}
+
+.award-card.award-locked .award-name {
+  color: var(--text-dim);
+}
+
+.award-earned-tag {
+  font-size: 0.7rem;
+  background: var(--gold-dim);
+  color: #000;
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-left: 6px;
+  vertical-align: middle;
+  font-weight: 700;
+}
+
+.award-body {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  margin-top: 3px;
+}
+
+.award-reward {
+  font-size: 0.82rem;
+  color: var(--green);
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.award-card.award-locked .award-reward {
+  color: var(--green-dim);
+}
