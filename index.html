@@ -12,7 +12,7 @@
   <div id="app">
     <header id="header" role="banner">
       <div id="title-row">
-        <h1>Goblin Inc.<span class="subtitle">Corporate Dungeon Management</span></h1>
+        <h1 id="page-heading" tabindex="-1">Goblin Inc.<span class="subtitle">Corporate Dungeon Management</span></h1>
         <div id="settings-wrapper">
           <button id="changelog-toggle" onclick="UI.toggleChangelog()" aria-label="Changelog" title="Changelog">&#x1F4DC;</button>
           <button id="settings-toggle" onclick="UI.toggleSettings()" aria-label="Settings" aria-expanded="false" aria-controls="settings-menu">&#x2699;</button>
@@ -33,25 +33,25 @@
           <span class="res-icon" aria-hidden="true">&#x2728;</span>
           <span class="res-name">Shinies</span>
           <span class="res-value" id="shinies-val">0</span>
-          <span class="res-rate" id="shinies-rate" aria-label="Shinies per second"></span>
+          <span class="res-rate" id="shinies-rate"></span>
         </div>
         <div class="resource hidden" id="res-food" aria-label="Food">
           <span class="res-icon" aria-hidden="true">&#x1F344;</span>
           <span class="res-name">Food</span>
           <span class="res-value" id="food-val">0 / 0</span>
-          <span class="res-rate" id="food-rate" aria-label="Food per second"></span>
+          <span class="res-rate" id="food-rate"></span>
         </div>
         <div class="resource hidden" id="res-goblins" aria-label="Goblins">
           <span class="res-icon" aria-hidden="true">&#x1F47A;</span>
           <span class="res-name">Goblins</span>
           <span class="res-value" id="goblins-val">0 / 0</span>
-          <span class="res-rate" id="goblins-rate" aria-label="Goblins per second"></span>
+          <span class="res-rate" id="goblins-rate"></span>
         </div>
         <div class="resource hidden" id="res-schemes" aria-label="Schemes">
           <span class="res-icon" aria-hidden="true">&#x1F4A1;</span>
           <span class="res-name">Schemes</span>
           <span class="res-value" id="schemes-val">0</span>
-          <span class="res-rate" id="schemes-rate" aria-label="Schemes per second"></span>
+          <span class="res-rate" id="schemes-rate"></span>
         </div>
       </div>
     </header>
@@ -110,35 +110,35 @@
           <div id="goblin-assignment" role="group" aria-label="Goblin workforce assignment">
             <div class="assignment-row">
               <span class="assign-label" id="label-idle">Idle</span>
-              <span class="assign-count" id="assign-idle" aria-labelledby="label-idle">0</span>
+              <span class="assign-count" id="assign-idle">0</span>
             </div>
             <div class="assignment-row hidden" id="assign-row-mining">
               <button class="assign-btn minus" onclick="Game.unassign('mining')" aria-label="Remove goblin from mining">&#x2212;</button>
               <span class="assign-label" id="label-mining">Mining</span>
-              <span class="assign-count" id="assign-mining" aria-labelledby="label-mining">0</span>
+              <span class="assign-count" id="assign-mining">0</span>
               <button class="assign-btn plus" onclick="Game.assign('mining')" aria-label="Assign goblin to mining">+</button>
-              <span class="assign-effect" id="assign-mining-effect" aria-label="Mining production"></span>
+              <span class="assign-effect" id="assign-mining-effect"></span>
             </div>
             <div class="assignment-row hidden" id="assign-row-farming">
               <button class="assign-btn minus" onclick="Game.unassign('farming')" aria-label="Remove goblin from farming">&#x2212;</button>
               <span class="assign-label" id="label-farming">Farming</span>
-              <span class="assign-count" id="assign-farming" aria-labelledby="label-farming">0</span>
+              <span class="assign-count" id="assign-farming">0</span>
               <button class="assign-btn plus" onclick="Game.assign('farming')" aria-label="Assign goblin to farming">+</button>
-              <span class="assign-effect" id="assign-farming-effect" aria-label="Farming production"></span>
+              <span class="assign-effect" id="assign-farming-effect"></span>
             </div>
             <div class="assignment-row hidden" id="assign-row-thinking">
               <button class="assign-btn minus" onclick="Game.unassign('thinking')" aria-label="Remove goblin from thinking">&#x2212;</button>
               <span class="assign-label" id="label-thinking">Thinking</span>
-              <span class="assign-count" id="assign-thinking" aria-labelledby="label-thinking">0</span>
+              <span class="assign-count" id="assign-thinking">0</span>
               <button class="assign-btn plus" onclick="Game.assign('thinking')" aria-label="Assign goblin to thinking">+</button>
-              <span class="assign-effect" id="assign-thinking-effect" aria-label="Thinking production"></span>
+              <span class="assign-effect" id="assign-thinking-effect"></span>
             </div>
             <div class="assignment-row hidden" id="assign-row-fighting">
               <button class="assign-btn minus" onclick="Game.unassign('fighting')" aria-label="Remove goblin from fighting">&#x2212;</button>
               <span class="assign-label" id="label-fighting">Fighting</span>
-              <span class="assign-count" id="assign-fighting" aria-labelledby="label-fighting">0</span>
+              <span class="assign-count" id="assign-fighting">0</span>
               <button class="assign-btn plus" onclick="Game.assign('fighting')" aria-label="Assign goblin to fighting">+</button>
-              <span class="assign-effect" id="assign-fighting-effect" aria-label="Fighting power"></span>
+              <span class="assign-effect" id="assign-fighting-effect"></span>
             </div>
           </div>
         </div>

@@ -1179,8 +1179,10 @@ const Game = {
       addLog('Anonymous stats OFF. Nothing being sent.', '');
       Telemetry._queue.length = 0;
     }
-    // Continue to the intro if it hasn't been shown yet.
+    // Continue to the intro if it hasn't been shown yet, otherwise land at
+    // the top of the page so screen readers aren't left on a hidden button.
     if (!game.introSeen) Game.showIntro();
+    else UI.focusPageTop();
   },
 
   // --- INTRO ---
@@ -1800,6 +1802,18 @@ function checkMemos() {
 
 const UI = {
   currentTab: 'gather',
+
+  // Focus the page heading and scroll to top. Use whenever the active
+  // overlay closes or at idle init — without this, screen readers land
+  // on wherever the browser last left focus (often in the middle of the
+  // page), which is disorienting.
+  focusPageTop() {
+    try { window.scrollTo(0, 0); } catch { /* ignore */ }
+    const h = document.getElementById('page-heading');
+    if (h) {
+      try { h.focus({ preventScroll: true }); } catch { h.focus(); }
+    }
+  },
 
   switchTab(tab) {
     // Check if tab is unlocked
@@ -2488,8 +2502,14 @@ function init() {
   // telemetry fires. showConsent returns true if the overlay was displayed;
   // the intro is then triggered from acceptConsent().
   const consentShowing = !game.telemetryConsentShown && Game.showConsent();
-  if (!consentShowing && !game.introSeen) {
-    Game.showIntro();
+  const introShowing = !consentShowing && !game.introSeen;
+  if (introShowing) Game.showIntro();
+  // No overlay opening? Put screen readers at the top of the page — otherwise
+  // focus stays wherever the browser last left it and NVDA lands mid-page.
+  if (!consentShowing && !introShowing) {
+    // requestAnimationFrame so the focus call happens after any render that
+    // DOMContentLoaded triggered; otherwise it can be overwritten.
+    requestAnimationFrame(() => UI.focusPageTop());
   }
 
   // Telemetry: one session_start per page load, flush pending on hide/unload.
