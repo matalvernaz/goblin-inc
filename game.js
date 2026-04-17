@@ -7,7 +7,11 @@
 // IP retention, opt-out via Settings menu. See /home/matt/goblin-telemetry/.
 // Set to '' to disable entirely at build time.
 const TELEMETRY_ENDPOINT = 'https://goblin-telemetry.matalvernaz.workers.dev';
-const GAME_VERSION = 'v0.5';
+const GAME_VERSION = 'v0.6';
+// Saves older than this major-version are force-reset. Bump when the state
+// shape changes in ways deepMerge can't heal (e.g. combat rework removing
+// game.zone.fighting, changing assignment semantics, etc).
+const SAVE_VERSION = 3;
 
 // ===========================================
 // SECTION 1: GAME DATA
@@ -94,6 +98,31 @@ const BUILDINGS = {
       1: 'Hung sign outside tunnel: "OPEN FOR BIZNESS." Confused merchant came in. Traded stuff for shinies. Left ALIVE. Nobody ate him! This is HUGE.',
       3: 'Have regular traders now! Used to be scared of us. Now scared of our PRICES. Heh. Is different kind of scary. Better kind.',
       5: 'Other dungeons asking how we did it. "How you get humans to trade with goblins?" Easy. Don\'t eat them. Give them reason to come back. Revolutionary.',
+    },
+  },
+  barracks: {
+    name: 'Barracks',
+    desc: 'Bunks, armor racks, a chalkboard with "DON\'T DIE" written in huge letters. Fighters auto-enlist when seats open.',
+    baseCost: { shinies: 400, schemes: 20 },
+    costMult: 1.35,
+    effect: (lvl) => `Army auto-recruit slots: ${3 * lvl}. Casualty-recovery ${10 * lvl}% faster.`,
+    unlockZone: 2,
+    story: {
+      1: 'Built bunks out of old shelves. Stuck chalkboard on wall: "DON\'T DIE." Short. Clear. Goblin-friendly. Now fighters sign up ON THEIR OWN when seats open. Is called "pull" recruiting, says book. We call it NOT YELLING AT PEOPLE.',
+      3: 'Barracks has ROSTER now. Names, pictures, fighting-styles. When one goblin falls, next one reads the wall and says "I go." Is very serious. Is very dungeon.',
+      5: 'Drill sergeant appeared. Self-appointed. Yells "HUSTLE, HUSTLE" a lot. Fighters like her. She bakes cookies after drills. Book has no chapter about cookies-in-army but should.',
+    },
+  },
+  lootSorter: {
+    name: 'Loot Sorter',
+    desc: 'Goblin with clipboard sorts shinies by shape. Somehow finds MORE when sorted.',
+    baseCost: { shinies: 1200, schemes: 80 },
+    costMult: 1.40,
+    effect: (lvl) => `+${10 * lvl}% zone-clear shinies reward. Unlocks SNATCH-N-RUN formation at Lv.1.`,
+    unlockZone: 8,
+    story: {
+      1: 'Sorter-goblin sorts loot pile by SHAPE. Round ones here. Pointy ones there. Other goblins laugh. Until sorter-goblin finds shinies OTHERS missed. Then nobody laughs. Book calls this "ek-zuk-yoo-shun." We call it "the clipboard knows."',
+      3: 'Sorter-goblin trained apprentices. They each got own clipboard. There is now a CLIPBOARD HIERARCHY. Sorter-goblin has BIGGEST clipboard. Is very fair.',
     },
   },
 };
@@ -200,6 +229,46 @@ const UPGRADES = [
     story: 'Biggest goblin had idea: "What if we all face SAME direction?" Revolutionary. Drew lines on floor. Goblins stood in rows. Didn\'t run away. "That\'s IT?" they asked. Turns out not running is 90% of fighting. Other 10% is wanting something worth fighting FOR. Goblins got real quiet after that.',
   },
   {
+    id: 'tacticalRetreatDoctrine',
+    name: 'Tact-Ick-Al Retreat Doctrine',
+    desc: 'Book says "live to fight another day." Goblins took this VERY literal. Now they come back.',
+    cost: { schemes: 50 },
+    effect: 'Unlocks auto-retreat threshold slider. Fighters fall back before the army is wiped.',
+    unlockZone: 1,
+    apply: () => { game.unlocks.tacticalRetreat = true; game.unlocks.pushPolicy = true; },
+    story: 'Old way: fight until everyone die. New way: fight until MOST still alive, then go home, eat, come back tomorrow. Book called it "sus-tain-ab-il-ity." We called it "not being dumb." Now we got SLIDER. Pick when to pull back. Pick WHY to pull back. Goblin generals all nodding like they invented it.',
+  },
+  {
+    id: 'wallUpDrills',
+    name: 'Wall-Up Drills',
+    desc: 'Shield goes HERE. Pointy-stick goes THERE. Slime bounces off. Boring but works.',
+    cost: { schemes: 200 },
+    effect: 'Unlocks WALL UP formation. Slow damage, very low casualties. Good vs Slimies.',
+    unlockZone: 4,
+    apply: () => { game.unlocks.formationWall = true; },
+    story: 'Watched slimies bounce off EACH OTHER. If slimies can do it, goblins can do it too! Practiced for week. Shields up. Feet planted. "If slime can\'t reach you, slime can\'t hurt you." Boring! Effective! Goblin defensive coordinator cried at first successful drill. Out of JOY.',
+  },
+  {
+    id: 'snatchAndRunProtocol',
+    name: 'Snatch-N-Run Proto-Call',
+    desc: 'Hit enemy. Grab their shiny stuff. Run before they recover. Bandit-goblins HATE it.',
+    cost: { schemes: 500 },
+    effect: 'Unlocks SNATCH-N-RUN formation. Medium damage + 30% loot bonus. Great vs Bandit-Goblins.',
+    unlockZone: 7,
+    apply: () => { game.unlocks.formationSnatch = true; },
+    story: 'Stole move from Bandit-Goblins and MADE IT BETTER. Hit fast, grab shinies from enemy POCKETS mid-fight, fall back before they notice. Bandit-Goblins furious. They invented this trick! "You STOLE our stealing!" Yes. Thank you. Book did not cover this. But book authors never fought goblin against goblin.',
+  },
+  {
+    id: 'enemyIntel',
+    name: 'Enemy Intel-Ij-Ence',
+    desc: 'Thinkin\' rock goblins wrote down what each monster is WEAK to. Life-changing.',
+    cost: { schemes: 750 },
+    effect: 'Zone description shows enemy archetype + matchup hint. Pick smarter formations.',
+    unlockZone: 6,
+    apply: () => { game.unlocks.enemyIntel = true; },
+    story: 'Thinkin\' rock goblins watched fights. Took notes. Made CHART. "Skellingtons crumble when hit hard. Slimies bounce off walls. Bandit-Goblins fall for tricks." Obvious in hindsight! But nobody WROTE IT DOWN before. Now every zone has enemy card on wall. Goblins study BEFORE fight now. Dungeon getting smarter every day.',
+  },
+  {
     id: 'overtimePay',
     name: 'Overtime Pay',
     desc: 'Pay goblins extra for extra work? Madness. But it works.',
@@ -300,6 +369,97 @@ const UPGRADES = [
     story: 'Finished the book. Every chapter. Every footnote. Even the in-dex. And we realized something: book not really about business. Is about ORGANIZING GOBLINS. Difference between old company and Goblin Inc. not the tools or mushrooms. Is that we read same book and CHOSE to do it different.',
   },
 ];
+
+// ===========================================
+// COMBAT: Formations, Enemy archetypes, Boss gimmicks
+// Data-driven so new entries are config, not code.
+// ===========================================
+
+// Formations — player-selectable combat postures. Each modifies damage,
+// casualty rate, and loot multipliers. First unlocked formation is always
+// CHARGE (default). Others gate behind research/building unlocks.
+const FORMATIONS = [
+  { id: 'charge', name: 'CHARGE!',
+    tagline: 'Run forward. Hit thing. Repeat.',
+    desc: 'Old reliable. Full damage, full casualties. No cleverness — just goblins going in.',
+    dmgMult: 1.0, casMult: 1.0, lootMult: 1.0,
+    unlocked: () => true,
+    announce: 'Formation: CHARGE. Goblins go in, hit hard, take losses.' },
+  { id: 'wall', name: 'WALL UP',
+    tagline: 'Shield goes here. Point-stick goes there. Slime bounces.',
+    desc: 'Defensive posture. Half damage output, but only a fifth the casualties. Slow grind, safe clear.',
+    dmgMult: 0.5, casMult: 0.2, lootMult: 1.0,
+    unlocked: () => !!game.unlocks.formationWall,
+    announce: 'Formation: WALL UP. Slow but safe. Few losses.' },
+  { id: 'snatch', name: 'SNATCH-N-RUN',
+    tagline: 'Hit, grab their shinies, leave before they notice.',
+    desc: 'Opportunistic. Three-quarter damage, higher casualties, but +30% shinies looted on clear.',
+    dmgMult: 0.75, casMult: 0.6, lootMult: 1.3,
+    unlocked: () => !!game.unlocks.formationSnatch,
+    announce: 'Formation: SNATCH AND RUN. Medium losses, bigger loot.' },
+];
+
+// Enemy archetypes — each zone gets one (deterministic by zone index).
+// weakTo formation = 1.4x damage taken. strongVs formation = 0.6x damage
+// taken. null = neutral either way. statMod scales zone base HP/str.
+const ENEMIES = [
+  { id: 'skel', name: 'Skellingtons',
+    desc: 'Old company employees, bony edition. Fall apart when hit hard. Just stand there when hit soft.',
+    weakTo: 'charge', strongVs: 'wall',
+    statMod: { hp: 1.0, str: 1.0 } },
+  { id: 'slime', name: 'Slimies',
+    desc: 'Gloopy, bouncy, kinda cute if they weren\'t trying to dissolve you. Harder to bruise than to block.',
+    weakTo: 'wall', strongVs: 'charge',
+    statMod: { hp: 1.2, str: 0.8 } },
+  { id: 'bandit', name: 'Bandit-Goblins',
+    desc: 'Goblins who took the OTHER book. "Grab-And-Growl Quarterly." Dodgy fighters. Fall for their own tricks.',
+    weakTo: 'snatch', strongVs: null,
+    statMod: { hp: 0.9, str: 1.1 } },
+  { id: 'weird', name: 'Weird-Things',
+    desc: 'From the deep-deep. Tentacles where ears should be. No known weakness. Just... weird.',
+    weakTo: null, strongVs: null,
+    statMod: { hp: 1.1, str: 1.1 } },
+];
+
+// Deterministic zone → enemy mapping. Boss zones override via BOSSES[idx].enemy.
+// Formula keeps it stable across save/load and infinite-scaling forever. Uses
+// the full ENEMIES array so adding a new archetype automatically joins the
+// rotation — no code change needed.
+function getZoneEnemy(zoneIdx) {
+  const boss = BOSSES[zoneIdx];
+  if (boss) return ENEMIES.find(e => e.id === boss.enemy) || ENEMIES[0];
+  const n = ENEMIES.length;
+  if (n <= 0) return { id: 'none', name: 'Nothing', desc: '', weakTo: null, strongVs: null, statMod: { hp: 1, str: 1 } };
+  // Offset shifts the sequence every `n` zones so players see all archetypes
+  // but in varied orders — not just a repeating 1-2-3-4-1-2-3-4 parade.
+  const offset = Math.floor(zoneIdx / n) % n;
+  return ENEMIES[(zoneIdx + offset) % n];
+}
+
+// Boss zones with unique mechanics. Add a new key = new boss, no code changes.
+// gimmick types: 'regen' (HP regen rate), 'casualtyMult' (multiply cas rate),
+// 'noFormationBonus' (disable matchup mods), 'lootBonus' (multiply clear reward).
+// Compose multiple via array of {type, value} if needed later.
+const BOSSES = {
+  4: { name: 'Kevin the Intern', enemy: 'skel',
+       gimmick: { type: 'regen', value: 0.015 },
+       bossDesc: 'Regenerates 1.5% HP per second. Pot-helmet kid heals faster than you chip him. Gotta finish fast or you NEVER finish.' },
+  9: { name: 'Sir Reginald the Adequate', enemy: 'slime',
+       gimmick: { type: 'casualtyMult', value: 2.0 },
+       bossDesc: 'Real hero, real armor. Your goblins die TWICE as fast under his blade. Wall up or weep.' },
+  14: { name: 'Chad Thornington III, MBA', enemy: 'bandit',
+        gimmick: { type: 'noFormationBonus' },
+        bossDesc: 'Chad knows every trick from every book. Formation bonuses do NOTHING against him. Pure stat check.' },
+  19: { name: 'Cynthia, Dragon Lawyer', enemy: 'weird',
+        gimmick: { type: 'casualtyMult', value: 1.5 },
+        bossDesc: 'Dragon. Lawyer. Unclear which is worse. Goblins lose MORALE as well as limbs — casualties +50%.' },
+  24: { name: 'Your Other Self', enemy: 'bandit',
+        gimmick: { type: 'regen', value: 0.02 },
+        bossDesc: 'Alternate-you who read the WRONG book. Their efficiency lets them patch wounds mid-fight. 2% HP regen/sec.' },
+  29: { name: 'The Invisible Hand', enemy: 'weird',
+        gimmick: { type: 'noFormationBonus' },
+        bossDesc: 'An idea with a suit. No weakness. No strategy. Just the weight of every bad decision ever made. Bring everything.' },
+};
 
 const ZONES = [
   // Act 1: The Awakening
@@ -696,6 +856,23 @@ const INTRO_PAGES = [
 
 const CHANGELOG = [
   {
+    version: 'v0.6 — Combat Rework: Idle At Last',
+    date: '2026-04-17',
+    changes: [
+      'Combat is now actually idle. Goblins auto-engage when fighters are assigned and auto-advance after a clear. Leave the tab open — progress keeps happening. No more "Send Goblins" button on every zone.',
+      'Enemy archetypes: Skellingtons, Slimies, Bandit-Goblins, Weird-Things. Each zone rotates one. Rock-paper-scissors matchups vs formations.',
+      'Formations: CHARGE (default), WALL UP (unlocks via research), SNATCH-N-RUN (unlocks via research). Pick the right one for the enemy and get a 40% damage boost; pick wrong and take a 40% hit.',
+      'Bosses now have gimmicks. Kevin regenerates 1.5%/s. Sir Reginald doubles casualties. Chad ignores formations. Cynthia wounds morale. Four more waiting for you.',
+      'Barracks building — auto-recruits idle goblins into the Fighting role up to a target you pin. Unlocks at Zone 3.',
+      'Tactical Retreat research — unlocks a threshold slider so your army pulls back before it\'s wiped. Also unlocks Push Policy (stop at this zone vs always advance).',
+      'Enemy Intel research — reveals each zone\'s enemy archetype and matchup hint. Smart goblins fight smart.',
+      'Loot Sorter building — +10%/level shinies from zone clears, unlocks SNATCH-N-RUN at Lv.1.',
+      'Combat log batches casualties so AFK returns aren\'t walls of "a goblin fell." One readable line per push.',
+      'Zone map now scales infinitely. No more 30-zone cap on display — designed for months of play.',
+      'IMPORTANT: pre-v0.6 saves were force-reset. Combat changed too much for the old save format. Explanation overlay on first load shows what you had before — memories stay, receipts cleared. New systems make early game much faster.',
+    ],
+  },
+  {
     version: 'v0.5 — Telemetry Consent',
     date: '2026-04-16',
     changes: [
@@ -818,7 +995,24 @@ function defaultState() {
     buildings: {},
     upgrades: [],
     assignments: { mining: 0, farming: 0, thinking: 0, fighting: 0 },
-    zone: { current: 0, progress: 0, fighting: false, cleared: [], casualtyAccum: 0 },
+    // Zone state. `progress` is 0-100; `advanceCountdown` ticks down after a
+    // clear so the player sees the win before auto-advance. `casualtyAccum` is
+    // the fractional casualty carry between ticks.
+    zone: { current: 0, progress: 0, cleared: [], casualtyAccum: 0, advanceCountdown: 0 },
+    // Combat configuration — set by player, read every tick. Defaults keep
+    // early-game idle-correct: auto-engage on, auto-advance on, no auto-retreat
+    // (that unlocks via research), no auto-recruit (unlocks via Barracks).
+    combat: {
+      formation: 'charge',        // current formation id (default always unlocked)
+      autoRetreatPct: 0,          // 0 = disabled (only TPK retreat); >0 = retreat when army drops below this %
+      pushPolicy: 'always',       // 'always' = advance on clear; 'stop' = stay on current zone
+      armyTarget: 0,              // auto-recruit target (0 = manual only)
+      paused: false,              // manual combat pause (power-user override)
+      combatLogAccum: 0,          // batches log events to ~every 5s so AFK doesn't spam
+      combatLogPhase: null,       // description of current phase; new phase = new log line
+      patrols: {},                // reserved for Phase 2 (replay cleared zones)
+      equipment: {},              // reserved for Phase 2 (armory + weapons)
+    },
     prestige: { totalPoints: 0, spentPoints: 0, times: 0, perks: {} },
     multipliers: {
       click: 1, mining: 1, food: 1, schemes: 1, global: 1,
@@ -841,7 +1035,7 @@ function defaultState() {
     telemetryOptOut: false,
     telemetrySessionId: null,
     telemetryConsentShown: false,
-    version: 2,
+    version: SAVE_VERSION,
   };
 }
 
@@ -1018,6 +1212,65 @@ const Game = {
       const raw = localStorage.getItem('goblinInc');
       if (!raw) return false;
       const data = JSON.parse(raw);
+
+      // Save version gate: anything older than SAVE_VERSION gets force-reset.
+      // The combat rework in v0.6 changed zone/assignment semantics in ways
+      // deepMerge can't rescue. We stash a tombstone of the old save so the
+      // post-reset overlay can show what the player had accomplished, and
+      // so we can audit in telemetry how many pre-rework players had to be
+      // reset. Loading a tombstoned save never happens — localStorage gets
+      // overwritten on the first save call with the fresh state.
+      const savedVersion = Number(data.version || 0);
+      if (savedVersion < SAVE_VERSION) {
+        const tombstone = {
+          prevVersion: data.version || 'unknown',
+          highestZone: data.stats?.highestZone || 0,
+          franchises: data.prestige?.times || 0,
+          totalPlaySeconds: data.stats?.totalPlaySeconds || 0,
+          hadIntroSeen: !!data.introSeen,
+          resetAt: Date.now(),
+        };
+        try { localStorage.setItem('goblinInc_preV06_tombstone', JSON.stringify(tombstone)); } catch { /* ignore */ }
+        // Keep what's still meaningful across the reset — consent answer
+        // (don't re-prompt), intro-seen flag (don't re-tell the goblin's
+        // opening monologue to a returning player), and telemetry session id
+        // so we can correlate pre- and post-rework behavior in AE.
+        const keepConsent = {
+          shown: !!data.telemetryConsentShown,
+          optOut: !!data.telemetryOptOut,
+          sessionId: data.telemetrySessionId || null,
+        };
+        const keepIntroSeen = !!data.introSeen;
+        const keepSessionNumber = Number(data.stats?.sessionNumber) || 0;
+        localStorage.removeItem('goblinInc');
+        game = defaultState();
+        if (keepConsent.shown) {
+          game.telemetryConsentShown = true;
+          game.telemetryOptOut = keepConsent.optOut;
+          game.telemetrySessionId = keepConsent.sessionId;
+        }
+        game.introSeen = keepIntroSeen;
+        game.stats.sessionNumber = keepSessionNumber;
+        game._pendingResetOverlay = tombstone;
+        // Bank the zone/franchise history in a memo so the returning player
+        // doesn't feel like everything they did was erased. addMemo keeps
+        // MEMOS, game.memos, and game.dynamicMemos all in sync.
+        if (tombstone.highestZone > 0 || tombstone.franchises > 0) {
+          addMemo({
+            type: 'story',
+            zone: 0,
+            title: 'MEMO: THE GREAT REWRITE',
+            body: `PERSONAL LOG (SALVAGED FROM OLD FILING CABINET):\n\n` +
+              `Goblin Inc. went back to the book. Specifically the chapter we kept skipping: "Organ-Iz-Ay-Shun-Al Ree-Struck-Chur-Ing." Turns out you can\'t fight smart by just sending more goblins into holes. Who knew.\n\n` +
+              `Before the rewrite, we made it to Zone ${tombstone.highestZone + 1} across ${tombstone.franchises} franchise${tombstone.franchises === 1 ? '' : 's'}. That memory doesn\'t go away. The RECEIPTS got cleared, but the lessons are in the bones now.\n\n` +
+              `Combat works different now. Goblins fight automatically. We pick formations. Enemies have personalities. Bosses have BITE. This is the game we meant to build.\n\n` +
+              `We go again. Knowing what we know. Dungeon owes us interest.`,
+          });
+        }
+        Game.save();
+        return true;
+      }
+
       const def = defaultState();
       // Merge saved data with defaults for new fields
       game = deepMerge(def, data);
@@ -1087,6 +1340,14 @@ const Game = {
     if (!data) return;
     try {
       const parsed = JSON.parse(atob(data));
+      const importVersion = Number(parsed.version || 0);
+      if (importVersion < SAVE_VERSION) {
+        addLog(
+          `Import rejected — that save is from v${importVersion || '?'}. Combat was rewritten in v0.6 and old saves aren\'t compatible. Start fresh instead.`,
+          'warning'
+        );
+        return;
+      }
       const def = defaultState();
       game = deepMerge(def, parsed);
       // Reset computed values to defaults — upgrades/perks re-derive them below
@@ -1131,6 +1392,57 @@ const Game = {
     } else {
       addLog('Anonymous stats ON. Thank you for helping tune the game.', '');
     }
+    Game.save();
+  },
+
+  // Reset-explanation overlay (shown when a pre-v0.6 save was force-cleared
+  // by Game.load). Exists so returning players understand why their progress
+  // vanished — not because of a bug, but because combat was rebuilt from
+  // scratch. Tombstone data (what they had before) is filled in so it feels
+  // acknowledging rather than dismissive.
+  showResetOverlay() {
+    const tomb = game._pendingResetOverlay;
+    if (!tomb) return;
+    const body = document.getElementById('reset-body');
+    const overlay = document.getElementById('reset-overlay');
+    if (!body || !overlay) return;
+    const zoneStr = tomb.highestZone > 0 ? `Zone ${tomb.highestZone + 1}` : 'Zone 1';
+    const fpStr = tomb.franchises === 1 ? '1 franchise' : `${tomb.franchises} franchises`;
+    const playMin = Math.max(1, Math.floor((tomb.totalPlaySeconds || 0) / 60));
+    body.innerHTML =
+      '<p><strong>Hit the book again.</strong> Specifically the chapter we kept skipping: ' +
+      '"Organ-Iz-Ay-Shun-Al Ree-Struck-Chur-Ing." Turns out you can\'t fight smart ' +
+      'by just sending more goblins into holes. Combat needed a full rewrite.</p>' +
+      '<p><strong>What changed:</strong></p>' +
+      '<ul>' +
+      '<li>Goblins now fight AUTOMATICALLY. No more Send Goblins button on every zone. Leave the tab open — progress keeps happening.</li>' +
+      '<li>Auto-advance after clears (tiny pause so you see the win, then on to the next).</li>' +
+      '<li>Enemies have personalities now — Skellingtons, Slimies, Bandit-Goblins, Weird-Things. Each has strengths and weaknesses.</li>' +
+      '<li>Formations unlock through research. CHARGE is default; WALL UP and SNATCH-N-RUN gate behind new upgrades.</li>' +
+      '<li>Bosses have unique gimmicks. Kevin regenerates, Sir Reginald doubles casualties, Chad ignores formations, etc.</li>' +
+      '<li>Barracks building auto-recruits fighters up to a target you pin.</li>' +
+      '<li>Tactical Retreat research lets you set an auto-pull-back threshold so one bad zone doesn\'t wipe your army.</li>' +
+      '</ul>' +
+      '<p><strong>What you had:</strong> You got to ' + zoneStr + ' across ' + fpStr +
+      ' (~' + playMin + ' min of play). That memory doesn\'t go away, even if the receipts did. ' +
+      'The returning-player memo in your Memos tab has the details.</p>' +
+      '<p><strong>Why the reset:</strong> the combat rewrite changed how fighting, zones, and saves are structured. ' +
+      'Migrating the old save would have left the game in a weird in-between state that would\'ve broken more than it preserved. ' +
+      'Cleaner to start fresh — the new systems make early-game much faster anyway.</p>' +
+      '<p>Franchise again, you\'ll see.</p>';
+    overlay.classList.remove('hidden');
+    const btn = document.getElementById('reset-continue');
+    if (btn) btn.focus();
+    Telemetry.record('v06_reset', `prev=${tomb.prevVersion}|zone=${tomb.highestZone + 1}|fr=${tomb.franchises}`);
+  },
+
+  dismissResetOverlay() {
+    const overlay = document.getElementById('reset-overlay');
+    if (overlay) overlay.classList.add('hidden');
+    game._pendingResetOverlay = null;
+    // Fresh save state + the v0.6 consent flow already ran in load(), so
+    // just put focus at the top of the page for screen readers.
+    UI.focusPageTop();
     Game.save();
   },
 
@@ -1179,9 +1491,10 @@ const Game = {
       addLog('Anonymous stats OFF. Nothing being sent.', '');
       Telemetry._queue.length = 0;
     }
-    // Continue to the intro if it hasn't been shown yet, otherwise land at
-    // the top of the page so screen readers aren't left on a hidden button.
-    if (!game.introSeen) Game.showIntro();
+    // Chain to the next overlay in priority order:
+    // reset explanation (migrated players) → story intro → focus top.
+    if (game._pendingResetOverlay) Game.showResetOverlay();
+    else if (!game.introSeen) Game.showIntro();
     else UI.focusPageTop();
   },
 
@@ -1302,36 +1615,81 @@ const Game = {
     addLog(`${rup.name} Lv.${count + 1}: ${rup.effect(count + 1)}`, 'reward');
   },
 
-  toggleFight() {
-    if (game.zone.fighting) {
-      Game.retreat();
-      return;
+  // Manual pause — combat auto-engages normally when assigned fighters are
+  // present. Pausing halts damage, progress regen, casualties, war rations.
+  // Power-user override for when the player needs to reallocate without
+  // losing troops.
+  togglePauseCombat() {
+    game.combat.paused = !game.combat.paused;
+    if (game.combat.paused) {
+      addLog('Combat paused. Goblins holding position — no damage, no losses.', 'combat');
+      Telemetry.record('combat_paused', `zone=${game.zone.current + 1}`);
+    } else {
+      addLog('Combat resumed. Back into the dungeon.', 'combat');
     }
-    if (game.assignments.fighting <= 0) {
-      addLog('Assign goblins to Fighting first!', 'warning');
-      return;
-    }
-    game.zone.fighting = true;
-    game.zone.casualtyAccum = 0;
-    addLog(`Goblins sent into Zone ${game.zone.current + 1}!`, 'combat');
+    announce(game.combat.paused ? 'Combat paused.' : 'Combat resumed.');
   },
 
+  // Manual retreat — reset current zone progress, pull army back. Fighters
+  // stay assigned so auto-engage resumes once conditions are met.
   retreat() {
-    game.zone.fighting = false;
+    if (game.zone.progress <= 0 && game.assignments.fighting <= 0) return;
+    game.zone.progress = 0;
     game.zone.casualtyAccum = 0;
-    addLog('Goblins retreated!', 'combat');
+    game.combat.combatLogAccum = 0;
+    game.combat.combatLogPhase = null;
+    addLog('Retreat! Progress reset, army pulled back.', 'combat');
     Telemetry.record('combat_retreat', 'manual');
   },
 
+  // Skip the 2s post-clear celebration and advance immediately.
+  advanceNow() {
+    if ((game.zone.advanceCountdown || 0) <= 0 && game.zone.progress < 100) return;
+    _advanceZone({ auto: false });
+  },
+
+  // Manual advance (kept for zone-map clicks and compat with existing HTML
+  // that may still reference Game.nextZone()).
   nextZone() {
-    game.zone.current++;
-    game.zone.progress = 0;
-    game.zone.fighting = false;
-    if (game.zone.current > game.stats.highestZone) {
-      game.stats.highestZone = game.zone.current;
-    }
-    checkMemos();
-    UI.renderDungeon();
+    _advanceZone({ auto: false });
+  },
+
+  // Intent setters — player-facing UI calls these. Each records telemetry
+  // so we can see which controls get used.
+  setFormation(id) {
+    const f = FORMATIONS.find(x => x.id === id);
+    if (!f || !f.unlocked()) return;
+    if (game.combat.formation === id) return;
+    game.combat.formation = id;
+    addLog(f.announce, 'combat');
+    announce(f.announce);
+    Telemetry.record('formation_chosen', `${id}|zone=${game.zone.current + 1}`);
+  },
+  setAutoRetreatPct(pct) {
+    if (!game.unlocks.tacticalRetreat) return;
+    const clamped = Math.max(0, Math.min(95, Math.floor(Number(pct) || 0)));
+    game.combat.autoRetreatPct = clamped;
+    announce(clamped > 0
+      ? `Auto-retreat at ${clamped}% of army target.`
+      : 'Auto-retreat disabled.');
+  },
+  setArmyTarget(n) {
+    if (!game.unlocks.barracks) return;
+    const cap = 3 * (game.buildings.barracks || 0);
+    const clamped = Math.max(0, Math.min(cap, Math.floor(Number(n) || 0)));
+    game.combat.armyTarget = clamped;
+    announce(clamped > 0
+      ? `Army target pinned at ${clamped}. Idle goblins will fill in.`
+      : 'Army auto-recruit disabled.');
+    Telemetry.record('army_target_set', String(clamped));
+  },
+  togglePushPolicy() {
+    if (!game.unlocks.pushPolicy) return;
+    game.combat.pushPolicy = game.combat.pushPolicy === 'always' ? 'stop' : 'always';
+    addLog(game.combat.pushPolicy === 'always'
+      ? 'Push policy: always advance. Goblins go deeper after every clear.'
+      : 'Push policy: stop here. Army holds the current zone.', 'combat');
+    announce(game.combat.pushPolicy === 'always' ? 'Always advance.' : 'Hold position.');
   },
 
   buyPerk(id) {
@@ -1473,9 +1831,11 @@ function getProductionRates() {
   // Goblins eat food — more goblins means more logistics overhead
   const totalGoblins = Math.floor(game.resources.goblins);
   let foodConsumption = totalGoblins * (0.15 + 0.005 * totalGoblins);
-  // Fighters consume extra food while actively fighting (war rations)
+  // Fighters consume extra food while actively fighting (war rations).
+  // "Active" = auto-engage conditions met: fighters present, not paused,
+  // zone not in advance-countdown. Matches tickCombat's own check.
   let combatFoodCost = 0;
-  if (game.zone.fighting && game.assignments.fighting > 0) {
+  if (isCombatActive()) {
     const zs = getZoneStats(game.zone.current);
     combatFoodCost = game.assignments.fighting * 0.01 * zs.str;
     foodConsumption += combatFoodCost;
@@ -1513,10 +1873,139 @@ function getCombatPower() {
 }
 
 function getZoneStats(zoneIdx) {
-  const hp = 500 * (zoneIdx + 1) * Math.pow(1.35, zoneIdx);
-  const str = 5 * Math.pow(1.35, zoneIdx);
+  const enemy = getZoneEnemy(zoneIdx);
+  const hp = 500 * (zoneIdx + 1) * Math.pow(1.35, zoneIdx) * enemy.statMod.hp;
+  const str = 5 * Math.pow(1.35, zoneIdx) * enemy.statMod.str;
   const reward = Math.floor(25 * Math.pow(1.6, zoneIdx));
   return { hp, str, reward };
+}
+
+// Pull together everything that modifies a fight: formation choice, enemy
+// matchup, boss gimmick. Returns effective multipliers the tick loop applies.
+function getEffectiveCombatStats(zoneIdx) {
+  const enemy = getZoneEnemy(zoneIdx);
+  const boss = BOSSES[zoneIdx] || null;
+  const formation = FORMATIONS.find(f => f.id === game.combat.formation) || FORMATIONS[0];
+
+  const noFormation = !!(boss && boss.gimmick && boss.gimmick.type === 'noFormationBonus');
+
+  let dmgMult = noFormation ? 1.0 : formation.dmgMult;
+  let casMult = noFormation ? 1.0 : formation.casMult;
+  let lootMult = noFormation ? 1.0 : formation.lootMult;
+
+  // Rock-paper-scissors matchup (disabled by noFormationBonus boss)
+  if (!noFormation) {
+    if (enemy.weakTo === formation.id) dmgMult *= 1.4;
+    if (enemy.strongVs === formation.id) dmgMult *= 0.6;
+  }
+
+  // Boss-specific modifiers
+  let regenPct = 0;
+  if (boss && boss.gimmick) {
+    if (boss.gimmick.type === 'casualtyMult') casMult *= boss.gimmick.value;
+    if (boss.gimmick.type === 'regen') regenPct = boss.gimmick.value;
+    if (boss.gimmick.type === 'lootBonus') lootMult *= boss.gimmick.value;
+  }
+
+  return { dmgMult, casMult, lootMult, regenPct, enemy, boss, formation, noFormation };
+}
+
+// Combat is "active" (consumes war rations, can take casualties, etc.) when
+// fighters are present AND we're not paused AND the zone isn't awaiting
+// auto-advance. Used by production rates and render code so they agree.
+function isCombatActive() {
+  return game.assignments.fighting > 0
+    && !game.combat.paused
+    && game.zone.progress < 100
+    && (game.zone.advanceCountdown || 0) <= 0;
+}
+
+// Human-readable formation/enemy matchup hint. Shown in the zone description
+// once Enemy Intel is researched. Kept in goblin voice.
+function _matchupHint(eff) {
+  const f = eff.formation;
+  const e = eff.enemy;
+  if (e.weakTo === f.id) return `Intel: ${f.name} is STRONG vs ${e.name}. Good pick.`;
+  if (e.strongVs === f.id) return `Intel: ${f.name} is WEAK vs ${e.name}. Consider switching.`;
+  return `Intel: ${f.name} is neutral vs ${e.name}.`;
+}
+
+// DOM helpers for the formation selector + policy controls. Kept as module-
+// level so UI.renderDungeon stays readable. All rely on container elements
+// declared in index.html; missing elements are treated as "feature disabled."
+function _renderFormationSelector() {
+  const container = document.getElementById('formation-selector');
+  if (!container) return;
+  const available = FORMATIONS.filter(f => f.unlocked());
+  if (available.length <= 1) {
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = '';
+  let html = '';
+  for (const f of available) {
+    const selected = game.combat.formation === f.id;
+    html += `<button class="formation-btn${selected ? ' selected' : ''}"` +
+      ` onclick="Game.setFormation('${f.id}')"` +
+      ` aria-pressed="${selected}"` +
+      ` title="${escapeHtml(f.desc)}">` +
+      `<span class="formation-name">${escapeHtml(f.name)}</span>` +
+      `<span class="formation-tagline">${escapeHtml(f.tagline)}</span>` +
+      `</button>`;
+  }
+  container.innerHTML = html;
+}
+
+function _renderAutoRetreat() {
+  const row = document.getElementById('auto-retreat-row');
+  if (!row) return;
+  if (!game.unlocks.tacticalRetreat) { row.style.display = 'none'; return; }
+  row.style.display = '';
+  const slider = document.getElementById('auto-retreat-slider');
+  const valueEl = document.getElementById('auto-retreat-value');
+  // Only sync value from state if the slider isn't being actively dragged —
+  // otherwise we fight the user's input.
+  if (slider && document.activeElement !== slider
+      && String(game.combat.autoRetreatPct) !== slider.value) {
+    slider.value = game.combat.autoRetreatPct;
+  }
+  if (valueEl) {
+    valueEl.textContent = game.combat.autoRetreatPct > 0
+      ? `${game.combat.autoRetreatPct}% of army target`
+      : 'off (only pull back on total wipe)';
+  }
+}
+
+function _renderArmyTarget() {
+  const row = document.getElementById('army-target-row');
+  if (!row) return;
+  if (!game.unlocks.barracks) { row.style.display = 'none'; return; }
+  row.style.display = '';
+  const input = document.getElementById('army-target-input');
+  const cap = 3 * (game.buildings.barracks || 0);
+  if (input) {
+    if (document.activeElement !== input
+        && String(game.combat.armyTarget) !== input.value) {
+      input.value = game.combat.armyTarget;
+    }
+    input.max = String(cap);
+  }
+  const capEl = document.getElementById('army-target-cap');
+  if (capEl) capEl.textContent = String(cap);
+}
+
+function _renderPushPolicy() {
+  const row = document.getElementById('push-policy-row');
+  if (!row) return;
+  if (!game.unlocks.pushPolicy) { row.style.display = 'none'; return; }
+  row.style.display = '';
+  const btn = document.getElementById('push-policy-btn');
+  if (btn) {
+    btn.textContent = game.combat.pushPolicy === 'always'
+      ? 'Push Policy: ALWAYS ADVANCE'
+      : 'Push Policy: STOP HERE';
+    btn.setAttribute('aria-pressed', String(game.combat.pushPolicy === 'stop'));
+  }
 }
 
 function getBuildingCost(id, lvl) {
@@ -1661,63 +2150,177 @@ function unassignOne() {
 }
 
 function tickCombat(dt) {
-  if (!game.zone.fighting) return;
-  // Auto-retreat if all fighters were unassigned mid-combat
-  if (game.assignments.fighting <= 0) {
-    game.zone.fighting = false;
-    game.zone.casualtyAccum = 0;
-    addLog('No fighters left — retreating!', 'warning');
-    Telemetry.record('combat_retreat', 'unassigned');
+  // --- Auto-advance countdown (post-clear pause before moving on) ---
+  if ((game.zone.advanceCountdown || 0) > 0) {
+    game.zone.advanceCountdown -= dt;
+    if (game.zone.advanceCountdown <= 0) {
+      game.zone.advanceCountdown = 0;
+      // Push policy: 'always' auto-advances; 'stop' holds at cleared zone
+      // until the player changes zones or toggles policy back.
+      if (game.combat.pushPolicy === 'always') {
+        _advanceZone({ auto: true });
+      }
+    }
     return;
   }
 
+  // --- Idle gates: paused, no army, zone already won ---
+  if (game.combat.paused) return;
+  if (game.assignments.fighting <= 0) return;
+  if (game.zone.progress >= 100) return;
+
   const power = getCombatPower();
-  const zs = getZoneStats(game.zone.current);
+  const base = getZoneStats(game.zone.current);
+  const eff = getEffectiveCombatStats(game.zone.current);
 
-  // Ratio formula: strong vs weak = fast, underpowered = glacially slow
-  const dps = power * power / (power + zs.str);
-  game.zone.progress += (dps / zs.hp) * 100 * dt;
+  // Damage: formation + enemy matchup modify the effective power used in
+  // the ratio formula. Bosses with regen subtract progress each tick.
+  const modPower = power * eff.dmgMult;
+  const dps = (modPower * modPower) / (modPower + base.str);
+  let progressGain = (dps / base.hp) * 100 * dt;
+  if (eff.regenPct > 0) progressGain -= eff.regenPct * 100 * dt;
+  game.zone.progress += progressGain;
+  if (game.zone.progress < 0) game.zone.progress = 0;
 
-  // Zone hits back — stronger zones kill fighters faster
-  const casualtyRate = zs.str / (power + zs.str);
+  // Casualties: formation casMult + boss casualty multiplier. modPower (not
+  // raw power) is what the enemy actually feels, so e.g. WALL UP's reduced
+  // damage doesn't accidentally worsen your survival rate beyond its own
+  // casMult.
+  const casualtyRate = (base.str / (modPower + base.str)) * eff.casMult;
   game.zone.casualtyAccum += casualtyRate * 0.005 * dt;
-  if (game.zone.casualtyAccum >= 1) {
-    game.zone.casualtyAccum = 0;
+  while (game.zone.casualtyAccum >= 1 && game.assignments.fighting > 0) {
+    game.zone.casualtyAccum -= 1;
     game.assignments.fighting--;
     game.resources.goblins = Math.max(0, game.resources.goblins - 1);
-    addLog('A goblin fell in the dungeon. They fought brave. For a goblin.', 'combat');
-    if (game.assignments.fighting <= 0) {
-      game.zone.fighting = false;
+    _combatLogCasualty(eff);
+  }
+
+  // --- Auto-retreat threshold (gated by Tactical Retreat + a set target) ---
+  // Skips bosses — those fights are all-or-nothing; you don't walk away
+  // from the Invisible Hand just because you're at 25% strength. Requires an
+  // armyTarget so the threshold has something meaningful to reference; until
+  // Barracks is built, retreat is TPK-only.
+  if (
+    game.combat.autoRetreatPct > 0
+    && game.unlocks.tacticalRetreat
+    && game.combat.armyTarget > 0
+    && !eff.boss
+    && game.assignments.fighting > 0
+  ) {
+    const threshold = Math.max(1, Math.ceil((game.combat.armyTarget * game.combat.autoRetreatPct) / 100));
+    if (game.assignments.fighting <= threshold) {
+      game.zone.progress = 0;
       game.zone.casualtyAccum = 0;
-      addLog('All fighters lost! Retreat! RETREAT!', 'warning');
-      Telemetry.record('all_fighters_lost', String(game.zone.current + 1));
+      game.combat.combatLogAccum = 0;
+      game.combat.combatLogPhase = null;
+      addLog(
+        `Tactical retreat — army at ${game.assignments.fighting}, below ${game.combat.autoRetreatPct}% threshold. Regrouping.`,
+        'combat'
+      );
+      Telemetry.record('auto_retreat_triggered',
+        `zone=${game.zone.current + 1}|pct=${game.combat.autoRetreatPct}`);
       return;
     }
   }
 
+  // --- Total army wipe (TPK) — always resets cleanly ---
+  if (game.assignments.fighting <= 0) {
+    game.zone.progress = 0;
+    game.zone.casualtyAccum = 0;
+    game.combat.combatLogAccum = 0;
+    game.combat.combatLogPhase = null;
+    addLog('Army wiped out! Everyone gone. Regrouping at base. Build back up.', 'warning');
+    Telemetry.record('all_fighters_lost', String(game.zone.current + 1));
+    return;
+  }
+
+  // --- Zone clear ---
   if (game.zone.progress >= 100) {
     game.zone.progress = 100;
-    game.zone.fighting = false;
     game.zone.casualtyAccum = 0;
+    game.combat.combatLogAccum = 0;
+    game.combat.combatLogPhase = null;
     game.zone.cleared.push(game.zone.current);
     game.stats.totalZonesCleared++;
-    // Solo Act: cleared a zone with exactly 1 fighter assigned
     if (game.assignments.fighting === 1) grantAchievement('soloAct');
     Telemetry.record('zone_clear', String(game.zone.current + 1));
 
     const z = ZONES[game.zone.current] || {};
-    const reward = zs.reward;
+    const reward = Math.floor(base.reward * eff.lootMult);
     game.resources.shinies += reward;
     game.stats.totalShinies += reward;
 
-    if (z.boss) {
-      addLog(`BOSS DEFEATED: ${z.bossName}! Zone cleared, +${fmt(reward)} Shinies`, 'combat');
+    if (eff.boss) {
+      addLog(`BOSS DOWN: ${eff.boss.name}! Zone cleared. +${fmt(reward)} Shinies.`, 'combat');
+      Telemetry.record('boss_killed', eff.boss.name);
     } else {
-      addLog(`Zone cleared: ${z.name || 'Zone ' + (game.zone.current + 1)}! +${fmt(reward)} Shinies`, 'reward');
+      const lootNote = eff.lootMult > 1.01 ? ' (loot bonus!)' : '';
+      addLog(`Zone cleared: ${z.name || 'Zone ' + (game.zone.current + 1)}. +${fmt(reward)} Shinies${lootNote}`, 'reward');
     }
-
     checkMemos();
+
+    // Start the advance countdown. Player can skip with "Advance Now" or
+    // cancel with push policy = stop.
+    game.zone.advanceCountdown = 2.0;
   }
+}
+
+// Casualty log batching: AFK players shouldn't return to 500 lines of
+// "a goblin fell." Group casualties by phase; log one line per ~5 losses
+// or immediately when the army is running thin.
+function _combatLogCasualty(eff) {
+  game.combat.combatLogAccum = (game.combat.combatLogAccum || 0) + 1;
+  const army = game.assignments.fighting;
+  const thinArmy = army <= 3;
+  if (game.combat.combatLogAccum >= 5 || thinArmy) {
+    const n = game.combat.combatLogAccum;
+    const enemyName = eff.enemy ? eff.enemy.name : 'something';
+    const msg = thinArmy
+      ? `Army running THIN — ${army} left against the ${enemyName}.`
+      : `Took losses fighting ${enemyName} — ${n} goblin${n === 1 ? '' : 's'} down this push.`;
+    addLog(msg, 'combat');
+    game.combat.combatLogAccum = 0;
+  }
+}
+
+// Auto-recruit: if the Barracks building is up and an army target is set,
+// pull idle goblins into the Fighting role up to the target each tick. Does
+// nothing if target is 0 or no idle goblins available. Barracks level lifts
+// the cap on target (3 per level).
+function tickAutoRecruit(dt) {
+  if (!game.unlocks.barracks) return;
+  const target = Math.max(0, Math.floor(game.combat.armyTarget || 0));
+  if (target <= 0) return;
+  const cap = 3 * (game.buildings.barracks || 0);
+  const effectiveTarget = Math.min(target, cap);
+  if (game.assignments.fighting >= effectiveTarget) return;
+  const needed = effectiveTarget - game.assignments.fighting;
+  const idle = getIdleGoblins();
+  const recruitCount = Math.min(needed, idle);
+  if (recruitCount > 0) {
+    game.assignments.fighting += recruitCount;
+  }
+}
+
+// Advance to next zone. Used by both auto-advance (after countdown) and
+// manual "Advance Now" / zone-map clicks. Safe to call when already on the
+// target zone — it's idempotent.
+function _advanceZone({ auto = false } = {}) {
+  game.zone.current++;
+  game.zone.progress = 0;
+  game.zone.casualtyAccum = 0;
+  game.zone.advanceCountdown = 0;
+  game.combat.combatLogAccum = 0;
+  game.combat.combatLogPhase = null;
+  if (game.zone.current > game.stats.highestZone) {
+    game.stats.highestZone = game.zone.current;
+  }
+  checkMemos();
+  if (auto) {
+    const z = ZONES[game.zone.current] || {};
+    addLog(`Pushing deeper — now entering ${z.name || 'Zone ' + (game.zone.current + 1)}.`, 'combat');
+  }
+  UI.renderDungeon();
 }
 
 let _silentUnlocks = false;
@@ -1761,6 +2364,13 @@ function checkUnlocks() {
   // Repeatable research unlocks after clearing 5 zones (first boss)
   if (z.cleared.length >= 5 || game.stats.totalZonesCleared >= 5)
     unlock('repeatableResearch', 'Goblins had BIG idea: what if research not stop? What if always MORE to learn? Ongoing Research unlocked!');
+
+  // Barracks auto-recruit unlock — simply having the building built.
+  // The flag is what the combat system checks; the building itself
+  // is purchased via the normal buy flow.
+  if ((b.barracks || 0) >= 1) {
+    unlock('barracks', 'Barracks opened. Fighters sign themselves up when seats open — set an army target in the Dungeon tab and idle goblins fill in.');
+  }
 }
 
 function tick() {
@@ -1769,9 +2379,23 @@ function tick() {
   game.lastTick = now;
 
   // Apply full elapsed time for resources (handles tab-switch gaps, up to 4h)
-  tickResources(Math.min(elapsed, 3600 * 4));
-  // Cap combat to 1s per frame — no catch-up (requires active play)
-  tickCombat(Math.min(elapsed, 1));
+  const cappedElapsed = Math.min(elapsed, 3600 * 4);
+  tickResources(cappedElapsed);
+  // Combat now catches up while idle too. We subdivide into 1s chunks so
+  // progress, casualties, and auto-advance countdowns interleave correctly
+  // (a single fat dt could otherwise clear 10 zones in one frame with stale
+  // state in between). Short per-tick slices cap at 0.25s for smoothness.
+  const combatStep = cappedElapsed > 2 ? 1.0 : Math.min(cappedElapsed, 0.25);
+  let combatRemaining = cappedElapsed;
+  let combatIter = 0;
+  const maxCombatIters = 14400; // 4h at 1s chunks; defensive upper bound
+  while (combatRemaining > 0 && combatIter < maxCombatIters) {
+    const step = Math.min(combatRemaining, combatStep);
+    tickAutoRecruit(step);
+    tickCombat(step);
+    combatRemaining -= step;
+    combatIter++;
+  }
   checkUnlocks();
   checkAchievements();
   // Accumulate cumulative playtime — active-tab only, cap per-tick at 2s
@@ -2194,24 +2818,46 @@ const UI = {
     const z = ZONES[zi] || { name: `Zone ${zi + 1}`, desc: 'Uncharted territory. Here be goblins.', boss: false };
     const zs = getZoneStats(zi);
     const power = getCombatPower();
+    const eff = getEffectiveCombatStats(zi);
     const cleared = game.zone.progress >= 100;
+    const advancing = (game.zone.advanceCountdown || 0) > 0;
 
-    document.getElementById('zone-name').textContent = `Zone ${zi + 1}: ${z.name}`;
-    document.getElementById('zone-desc').textContent = z.desc;
+    // --- Zone title, description, enemy card ---
+    const bossName = eff.boss ? eff.boss.name : null;
+    document.getElementById('zone-name').textContent = bossName
+      ? `Zone ${zi + 1}: ${z.name} — BOSS: ${bossName}`
+      : `Zone ${zi + 1}: ${z.name}`;
+
+    let descText = z.desc || '';
+    if (eff.boss && eff.boss.bossDesc) {
+      descText += ` ${eff.boss.bossDesc}`;
+    }
+    // Enemy archetype (always shown) + matchup intel (only when unlocked)
+    const enemyLine = `Enemy: ${eff.enemy.name}. ${eff.enemy.desc}`;
+    const intelLine = (game.unlocks.enemyIntel && !eff.noFormation)
+      ? _matchupHint(eff)
+      : '';
+    const descEl = document.getElementById('zone-desc');
+    descEl.textContent = intelLine ? `${descText}\n\n${enemyLine}\n${intelLine}` : `${descText}\n\n${enemyLine}`;
+
     document.getElementById('zone-strength').textContent = fmt(zs.str);
-    document.getElementById('player-power').textContent = fmt(power);
+    document.getElementById('player-power').textContent = fmt(power * eff.dmgMult);
     document.getElementById('fighter-count').textContent = game.assignments.fighting;
 
-    // Combat details — show DPS, HP, and ETA when fighting or have fighters
+    // --- Combat details (DPS/HP/ETA/food) ---
     const dpsRow = document.getElementById('zone-dps-row');
     const hpRow = document.getElementById('zone-hp-row');
     const etaRow = document.getElementById('zone-eta-row');
+    const foodRow = document.getElementById('zone-food-row');
     if (power > 0 && !cleared) {
-      const combatDps = power * power / (power + zs.str);
-      const remaining = (100 - game.zone.progress) / 100 * zs.hp;
-      const secs = remaining / combatDps;
+      const modPower = power * eff.dmgMult;
+      const combatDps = (modPower * modPower) / (modPower + zs.str);
+      const remaining = ((100 - game.zone.progress) / 100) * zs.hp;
+      // If boss regens, effective DPS is net of regen (fraction of HP per sec).
+      const netDps = Math.max(0.01, combatDps - (eff.regenPct * zs.hp));
+      const secs = remaining / netDps;
 
-      document.getElementById('zone-dps').textContent = fmt(combatDps);
+      document.getElementById('zone-dps').textContent = fmt(netDps);
       dpsRow.style.display = '';
 
       document.getElementById('zone-hp-current').textContent = fmt(remaining);
@@ -2219,14 +2865,13 @@ const UI = {
       hpRow.style.display = '';
 
       const etaEl = document.getElementById('zone-eta');
-      if (secs < 60) etaEl.textContent = `${Math.ceil(secs)}s`;
+      if (!isFinite(secs) || secs > 3600 * 24) etaEl.textContent = 'stalled';
+      else if (secs < 60) etaEl.textContent = `${Math.ceil(secs)}s`;
       else if (secs < 3600) etaEl.textContent = `${Math.ceil(secs / 60)}m`;
       else etaEl.textContent = `${(secs / 3600).toFixed(1)}h`;
       etaRow.style.display = '';
 
-      // Combat food cost
-      const foodRow = document.getElementById('zone-food-row');
-      if (game.zone.fighting) {
+      if (isCombatActive()) {
         const combatFood = game.assignments.fighting * 0.01 * zs.str;
         document.getElementById('zone-food-cost').textContent = fmt(combatFood);
         foodRow.style.display = '';
@@ -2237,49 +2882,83 @@ const UI = {
       dpsRow.style.display = 'none';
       hpRow.style.display = 'none';
       etaRow.style.display = 'none';
-      document.getElementById('zone-food-row').style.display = 'none';
+      foodRow.style.display = 'none';
     }
 
+    // --- Progress bar ---
     const progress = Math.min(game.zone.progress, 100);
     document.getElementById('zone-progress-fill').style.width = progress + '%';
     document.getElementById('zone-progress-text').textContent = progress.toFixed(1) + '%';
     const progressBar = document.getElementById('zone-progress-bar');
     if (progressBar) progressBar.setAttribute('aria-valuenow', Math.round(progress));
 
-    // Show/hide combat vs rewards
+    // --- Combat vs cleared/advancing ---
+    const combatEl = document.getElementById('zone-combat');
+    const rewardsEl = document.getElementById('zone-rewards');
     if (cleared) {
-      document.getElementById('zone-combat').style.display = 'none';
-      document.getElementById('zone-rewards').style.display = 'block';
-      document.getElementById('zone-reward-text').textContent = `+${fmt(zs.reward)} Shinies earned!`;
+      combatEl.style.display = 'none';
+      rewardsEl.style.display = 'block';
+      const reward = Math.floor(zs.reward * eff.lootMult);
+      const rewardText = advancing
+        ? `+${fmt(reward)} Shinies. Advancing in ${game.zone.advanceCountdown.toFixed(1)}s…`
+        : (game.combat.pushPolicy === 'stop'
+          ? `+${fmt(reward)} Shinies. Holding position per push policy.`
+          : `+${fmt(reward)} Shinies earned!`);
+      document.getElementById('zone-reward-text').textContent = rewardText;
     } else {
-      document.getElementById('zone-combat').style.display = 'block';
-      document.getElementById('zone-rewards').style.display = 'none';
+      combatEl.style.display = 'block';
+      rewardsEl.style.display = 'none';
+    }
 
-      const fightBtn = document.getElementById('zone-fight-btn');
-      const retreatBtn = document.getElementById('zone-retreat-btn');
-      if (game.zone.fighting) {
-        fightBtn.style.display = 'none';
-        retreatBtn.style.display = '';
+    // --- Combat status label (replaces old Send button) ---
+    const statusEl = document.getElementById('combat-status');
+    if (statusEl) {
+      if (game.combat.paused) {
+        statusEl.textContent = 'COMBAT PAUSED';
+      } else if (game.assignments.fighting <= 0) {
+        statusEl.textContent = 'No goblins fighting. Assign some in the Gather tab.';
+      } else if (cleared && !advancing && game.combat.pushPolicy === 'stop') {
+        statusEl.textContent = 'Zone cleared. Holding (push policy: stop).';
+      } else if (advancing) {
+        statusEl.textContent = 'Advancing…';
       } else {
-        fightBtn.style.display = '';
-        retreatBtn.style.display = 'none';
-        fightBtn.disabled = game.assignments.fighting <= 0;
+        statusEl.textContent = `Fighting the ${eff.enemy.name}.`;
       }
     }
 
-    // Zone map
+    // --- Manual override buttons ---
+    const pauseBtn = document.getElementById('zone-pause-btn');
+    if (pauseBtn) pauseBtn.textContent = game.combat.paused ? 'Resume Combat' : 'Pause Combat';
+    const retreatBtn = document.getElementById('zone-retreat-btn');
+    if (retreatBtn) retreatBtn.disabled = cleared || (game.zone.progress <= 0 && !isCombatActive());
+    const advanceBtn = document.getElementById('zone-advance-btn');
+    if (advanceBtn) advanceBtn.style.display = (cleared && advancing) ? '' : 'none';
+
+    // --- Formation selector ---
+    _renderFormationSelector();
+
+    // --- Policy controls (gated by unlocks) ---
+    _renderAutoRetreat();
+    _renderArmyTarget();
+    _renderPushPolicy();
+
+    // --- Zone map ---
     const mapContainer = document.getElementById('zone-list');
     let mapHtml = '';
-    const maxShow = Math.max(zi + 2, game.stats.highestZone + 2);
-    for (let i = 0; i < Math.min(maxShow, 30); i++) {
+    const highest = Math.max(game.stats.highestZone, zi);
+    // Show all cleared + current + one ahead. No 30-zone cap — this scales
+    // infinitely per the months-of-gameplay scope.
+    const maxShow = highest + 2;
+    for (let i = 0; i < maxShow; i++) {
       const isCleared = game.zone.cleared.includes(i) || (i === zi && cleared);
       const isCurrent = i === zi && !cleared;
-      const isBoss = ZONES[i]?.boss || false;
+      const isBoss = !!BOSSES[i] || !!(ZONES[i]?.boss);
       let cls = 'zone-pip';
       if (isCleared) cls += ' cleared';
       if (isCurrent) cls += ' current';
       if (isBoss) cls += ' boss';
-      mapHtml += `<div class="${cls}" title="${ZONES[i]?.name || 'Zone ' + (i + 1)}">${i + 1}</div>`;
+      const zname = ZONES[i]?.name || `Zone ${i + 1}`;
+      mapHtml += `<div class="${cls}" title="${escapeHtml(zname)}">${i + 1}</div>`;
     }
     mapContainer.innerHTML = mapHtml;
   },
@@ -2498,17 +3177,17 @@ function init() {
   _silentUnlocks = false;
   checkMemos();
 
-  // First-time-ever consent notice — must appear BEFORE intro and BEFORE any
-  // telemetry fires. showConsent returns true if the overlay was displayed;
-  // the intro is then triggered from acceptConsent().
+  // Overlay priority on load:
+  //   1. Consent (legal, only if never answered)
+  //   2. v0.6 reset explanation (only for players whose save was force-reset)
+  //   3. Story intro (only if never seen)
+  //   4. Focus the page heading (NVDA-friendly default landing)
   const consentShowing = !game.telemetryConsentShown && Game.showConsent();
-  const introShowing = !consentShowing && !game.introSeen;
+  const resetShowing = !consentShowing && !!game._pendingResetOverlay;
+  if (resetShowing) Game.showResetOverlay();
+  const introShowing = !consentShowing && !resetShowing && !game.introSeen;
   if (introShowing) Game.showIntro();
-  // No overlay opening? Put screen readers at the top of the page — otherwise
-  // focus stays wherever the browser last left it and NVDA lands mid-page.
-  if (!consentShowing && !introShowing) {
-    // requestAnimationFrame so the focus call happens after any render that
-    // DOMContentLoaded triggered; otherwise it can be overwritten.
+  if (!consentShowing && !resetShowing && !introShowing) {
     requestAnimationFrame(() => UI.focusPageTop());
   }
 

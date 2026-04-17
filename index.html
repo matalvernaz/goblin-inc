@@ -166,11 +166,11 @@
       <!-- Dungeon Tab -->
       <section class="tab-panel" id="panel-dungeon" role="tabpanel" aria-labelledby="tab-dungeon">
         <h2>Dungeon Expansion</h2>
-        <p class="flavor-text" id="dungeon-flavor">Send your goblins into the unknown. They'll probably be fine.</p>
+        <p class="flavor-text" id="dungeon-flavor">Goblins fight automatically. You set the formation, the policy, the pace. Leave the tab open — progress keeps happening.</p>
         <div id="zone-info" aria-label="Current zone">
           <div id="zone-header">
             <h3 id="zone-name">Zone 1: The Broom Closet</h3>
-            <p id="zone-desc"></p>
+            <p id="zone-desc" class="zone-desc"></p>
           </div>
           <div id="zone-combat">
             <div id="zone-progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Zone clearing progress">
@@ -178,22 +178,41 @@
               <span id="zone-progress-text" aria-hidden="true">0%</span>
             </div>
             <div id="zone-stats" aria-label="Combat statistics">
+              <p id="combat-status" class="combat-status">No goblins fighting.</p>
               <p>Fighters: <span id="fighter-count">0</span> goblins</p>
-              <p>Your Power: <span id="player-power">0</span> vs Zone Strength: <span id="zone-strength">5</span></p>
-              <p id="zone-dps-row" style="display:none">DPS: <span id="zone-dps">0</span></p>
+              <p>Effective Power: <span id="player-power">0</span> vs Zone Strength: <span id="zone-strength">5</span></p>
+              <p id="zone-dps-row" style="display:none">Net DPS: <span id="zone-dps">0</span></p>
               <p id="zone-hp-row" style="display:none">Zone HP: <span id="zone-hp-current">0</span> / <span id="zone-hp-max">0</span></p>
               <p id="zone-eta-row" style="display:none">Time Left: <span id="zone-eta"></span></p>
               <p id="zone-food-row" style="display:none">War Rations: <span id="zone-food-cost">0</span> food/s</p>
             </div>
+            <div id="formation-selector" class="formation-selector" role="group" aria-label="Combat formation"></div>
+            <div id="combat-policy" aria-label="Combat policy controls">
+              <div id="auto-retreat-row" class="policy-row" style="display:none">
+                <label for="auto-retreat-slider">Auto-retreat threshold</label>
+                <input id="auto-retreat-slider" type="range" min="0" max="95" step="5" value="0"
+                  oninput="Game.setAutoRetreatPct(this.value)">
+                <span id="auto-retreat-value">off (only pull back on total wipe)</span>
+              </div>
+              <div id="army-target-row" class="policy-row" style="display:none">
+                <label for="army-target-input">Army target (max <span id="army-target-cap">0</span>)</label>
+                <input id="army-target-input" type="number" min="0" max="0" step="1" value="0"
+                  oninput="Game.setArmyTarget(this.value)">
+              </div>
+              <div id="push-policy-row" class="policy-row" style="display:none">
+                <button id="push-policy-btn" onclick="Game.togglePushPolicy()" aria-pressed="false">Push Policy: ALWAYS ADVANCE</button>
+              </div>
+            </div>
             <div id="zone-controls">
-              <button id="zone-fight-btn" onclick="Game.toggleFight()" aria-label="Send goblins to fight">Send Goblins!</button>
-              <button id="zone-retreat-btn" onclick="Game.retreat()" style="display:none" aria-label="Retreat goblins from zone">Retreat!</button>
+              <button id="zone-pause-btn" onclick="Game.togglePauseCombat()">Pause Combat</button>
+              <button id="zone-retreat-btn" onclick="Game.retreat()">Retreat &amp; Reset</button>
+              <button id="zone-advance-btn" onclick="Game.advanceNow()" style="display:none">Advance Now</button>
             </div>
           </div>
           <div id="zone-rewards" style="display:none" role="alert">
             <h3>Zone Cleared!</h3>
             <p id="zone-reward-text"></p>
-            <button onclick="Game.nextZone()" aria-label="Advance to next zone">Advance!</button>
+            <button onclick="Game.advanceNow()">Advance Now</button>
           </div>
         </div>
         <div id="zone-map" aria-label="Explored zones map">
@@ -270,6 +289,19 @@
     <div class="intro-content">
       <div id="intro-text" class="intro-text"></div>
       <button id="intro-next-btn" class="intro-btn" onclick="Game.advanceIntro()">Continue</button>
+    </div>
+  </div>
+
+  <!-- Reset-explanation overlay. Shown once on first load post-v0.6 for any
+       player whose save was force-reset by the combat rework. Tombstone data
+       (old highest zone / franchise count) is filled in by Game.load(). -->
+  <div id="reset-overlay" class="intro-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="reset-heading">
+    <div class="intro-content consent-content">
+      <h2 id="reset-heading">Big Rebuild. Sorry About Your Save.</h2>
+      <div id="reset-body" class="intro-text"></div>
+      <div class="consent-actions">
+        <button id="reset-continue" class="intro-btn" onclick="Game.dismissResetOverlay()">Let's go</button>
+      </div>
     </div>
   </div>
 

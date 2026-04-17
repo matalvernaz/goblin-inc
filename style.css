@@ -1030,39 +1030,165 @@ h3 {
 #zone-controls {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
 }
 
-#zone-fight-btn {
-  background: var(--orange);
-  border: none;
-  color: #000;
-  padding: 8px 24px;
+#zone-controls button {
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 700;
+  font-size: 0.85rem;
+  font-weight: 600;
   transition: all 0.15s;
 }
 
-#zone-fight-btn:hover {
-  filter: brightness(1.15);
+#zone-controls button:hover:not(:disabled) {
+  background: var(--bg-card);
+  border-color: var(--orange);
 }
 
-#zone-fight-btn:disabled {
-  background: var(--bg-hover);
-  color: var(--text-muted);
+#zone-controls button:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
+}
+
+#zone-pause-btn {
+  background: var(--orange);
+  color: #000;
+  border-color: var(--orange);
 }
 
 #zone-retreat-btn {
   background: var(--red);
-  border: none;
   color: white;
-  padding: 8px 24px;
+  border-color: var(--red);
+}
+
+#zone-advance-btn {
+  background: var(--gold);
+  color: #000;
+  border-color: var(--gold);
+}
+
+.zone-desc {
+  white-space: pre-line;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+.combat-status {
+  color: var(--orange);
+  font-weight: 600;
+  font-style: italic;
+  margin-bottom: 4px;
+}
+
+/* --- Formation selector --- */
+.formation-selector {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+
+.formation-btn {
+  flex: 1 1 140px;
+  background: var(--bg-dark);
+  border: 2px solid var(--border);
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.formation-btn:hover {
+  border-color: var(--orange);
+  background: var(--bg-hover);
+}
+
+.formation-btn.selected {
+  border-color: var(--gold);
+  background: var(--bg-hover);
+  box-shadow: 0 0 0 1px var(--gold);
+}
+
+.formation-name {
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.formation-tagline {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+/* --- Policy controls (auto-retreat / army target / push policy) --- */
+#combat-policy {
+  margin-top: 10px;
+  padding: 10px;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.policy-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+  flex-wrap: wrap;
+}
+
+.policy-row label {
+  min-width: 180px;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+.policy-row input[type="range"] {
+  flex: 1 1 160px;
+  min-width: 120px;
+}
+
+.policy-row input[type="number"] {
+  width: 80px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 0.9rem;
+}
+
+.policy-row span {
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+#push-policy-btn {
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 14px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
+}
+
+#push-policy-btn[aria-pressed="true"] {
+  background: var(--blue);
+  color: #000;
+  border-color: var(--blue);
 }
 
 #zone-rewards {
