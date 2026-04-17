@@ -248,6 +248,23 @@
     </footer>
   </div>
 
+  <!-- Telemetry consent overlay (shown once on first play) -->
+  <div id="consent-overlay" class="intro-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="consent-heading">
+    <div class="intro-content consent-content">
+      <h2 id="consent-heading" class="consent-heading">A heads-up before you play</h2>
+      <div class="consent-body">
+        <p>This game sends a small amount of <strong>anonymous</strong> gameplay data — things like which zones you clear, how long runs take, and where players get stuck. It helps me tune the balance.</p>
+        <p><strong>What is sent:</strong> a random session ID (re-used only within your own browser), game version, progression milestones, workforce allocation, and resource counts.</p>
+        <p><strong>What is never sent:</strong> your name, email, IP address, location, any account identifier, or any data that could identify you personally. There are no third-party trackers and no advertising.</p>
+        <p>You can turn it off at any time: click the <span class="consent-gear" aria-hidden="true">&#x2699;</span> gear icon in the top-right and uncheck <em>Send anonymous gameplay stats</em>.</p>
+      </div>
+      <div class="consent-buttons">
+        <button id="consent-accept" class="intro-btn" onclick="Game.acceptConsent(true)">Got it — keep stats on</button>
+        <button id="consent-optout" class="intro-btn intro-btn-secondary" onclick="Game.acceptConsent(false)">Turn stats off</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Intro overlay -->
   <div id="intro-overlay" class="intro-overlay hidden" role="dialog" aria-modal="true" aria-label="Story introduction">
     <div class="intro-content">

@@ -7,7 +7,7 @@
 // IP retention, opt-out via Settings menu. See /home/matt/goblin-telemetry/.
 // Set to '' to disable entirely at build time.
 const TELEMETRY_ENDPOINT = 'https://goblin-telemetry.matalvernaz.workers.dev';
-const GAME_VERSION = 'v0.4';
+const GAME_VERSION = 'v0.5';
 
 // ===========================================
 // SECTION 1: GAME DATA
@@ -696,6 +696,16 @@ const INTRO_PAGES = [
 
 const CHANGELOG = [
   {
+    version: 'v0.5 — Telemetry Consent',
+    date: '2026-04-16',
+    changes: [
+      'First-time consent screen — shows once before play, explains exactly what anonymous data is collected (zone progress, workforce allocation, resource state) and what is NOT (no name, email, IP, location, or account identifier).',
+      'Expanded telemetry schema — now captures workforce allocation, food/foodCap/foodRate, building & upgrade counts, cross-session playtime, and session number. Helps spot balance walls and stuck points.',
+      'New diagnostic events: building_built, upgrade_bought, starvation_death, combat_retreat, all_fighters_lost, hard_reset, tutorial_dismissed, tutorial_completed, and a periodic heartbeat.',
+      'Telemetry now waits for explicit consent before sending anything — nothing leaves the browser until you pick Keep On or Turn Off.',
+    ],
+  },
+  {
     version: 'v0.4 — Corporate Awards',
     date: '2026-04-16',
     changes: [
@@ -818,7 +828,7 @@ function defaultState() {
     },
     bonuses: { maxGoblins: 0, foodCap: 0 },
     flags: { overtimePay: false, middleManagement: false },
-    stats: { totalClicks: 0, totalShinies: 0, highestZone: 0, totalZonesCleared: 0 },
+    stats: { totalClicks: 0, totalShinies: 0, highestZone: 0, totalZonesCleared: 0, totalPlaySeconds: 0, sessionNumber: 0 },
     repeatableUpgrades: {},
     achievements: { unlocked: [], times: {} },
     unlocks: {},
@@ -830,6 +840,7 @@ function defaultState() {
     lastTick: Date.now(),
     telemetryOptOut: false,
     telemetrySessionId: null,
+    telemetryConsentShown: false,
     version: 2,
   };
 }
@@ -896,7 +907,7 @@ const Telemetry = {
 
   enabled() {
     if (!TELEMETRY_ENDPOINT || TELEMETRY_ENDPOINT.includes('REPLACE-ME')) return false;
-    // Opt-out flag lives on the save so it roundtrips with the rest of settings.
+    if (!game.telemetryConsentShown) return false;
     return game.telemetryOptOut !== true;
   },
 
@@ -911,30 +922,57 @@ const Telemetry = {
   },
 
   snapshot() {
+    const a = game.assignments || {};
+    const buildings = game.buildings || {};
+    const buildingCount = Object.values(buildings).reduce((s, v) => s + (v || 0), 0);
+    const rates = (typeof getProductionRates === 'function') ? getProductionRates() : { food: 0 };
     return {
+      // Run state
       zone: game.zone?.current || 0,
       shinies: Math.floor(game.resources?.shinies || 0),
       goblins: Math.floor(game.resources?.goblins || 0),
       franchise: game.prestige?.times || 0,
       clicks: game.stats?.totalClicks || 0,
+      // Time
       playSeconds: Math.floor((Date.now() - Telemetry._sessionStart) / 1000),
+      totalPlaySeconds: Math.floor(game.stats?.totalPlaySeconds || 0),
+      sessionNumber: game.stats?.sessionNumber || 0,
+      // Resource health
+      food: Math.floor(game.resources?.food || 0),
+      foodCap: (typeof getFoodCap === 'function') ? Math.floor(getFoodCap()) : 0,
+      foodRate: Number((rates.food || 0).toFixed(3)),
+      maxGoblins: (typeof getMaxGoblins === 'function') ? getMaxGoblins() : 0,
+      // Workforce allocation
+      mining: a.mining || 0,
+      farming: a.farming || 0,
+      thinking: a.thinking || 0,
+      fighting: a.fighting || 0,
+      // Inventory scale
+      buildings: buildingCount,
+      upgrades: (game.upgrades || []).length,
     };
   },
 
   record(event, detail = '') {
-    if (!Telemetry.enabled()) return;
+    // Hard-off (endpoint unconfigured or user has opted out): drop silently.
+    if (!TELEMETRY_ENDPOINT || TELEMETRY_ENDPOINT.includes('REPLACE-ME')) return;
+    if (game.telemetryConsentShown && game.telemetryOptOut) return;
+    // Otherwise queue — flush() gates on consent so pre-consent events wait
+    // until the player has made an explicit choice.
     Telemetry._queue.push({
       event,
       detail,
       ...Telemetry.snapshot(),
     });
-    // Soft cap queue to avoid unbounded growth if offline.
     if (Telemetry._queue.length > 200) {
       Telemetry._queue.splice(0, Telemetry._queue.length - 200);
     }
   },
 
   flush(sync = false) {
+    // Hold the queue across the consent prompt — don't send anything until
+    // the player has been shown the notice and chosen to keep stats on.
+    if (!game.telemetryConsentShown) return;
     if (!Telemetry.enabled()) { Telemetry._queue.length = 0; return; }
     if (Telemetry._queue.length === 0) return;
     const payload = JSON.stringify({
@@ -1099,6 +1137,8 @@ const Game = {
   hardReset() {
     if (!confirm('Are you sure? This erases ALL progress, including prestige.')) return;
     if (!confirm('REALLY sure? Last chance.')) return;
+    Telemetry.record('hard_reset');
+    Telemetry.flush(true);
     localStorage.removeItem('goblinInc');
     game = defaultState();
     UI._lastLogCounter = 0;
@@ -1107,6 +1147,40 @@ const Game = {
     UI.currentTab = 'gather';
     UI.switchTab('gather');
     Game.showIntro();
+  },
+
+  // --- CONSENT ---
+  // Shown once before any play — lets the player opt out of telemetry up-front
+  // with a plain-English summary of what is and isn't collected.
+
+  showConsent() {
+    if (!TELEMETRY_ENDPOINT || TELEMETRY_ENDPOINT.includes('REPLACE-ME')) {
+      // Dev builds with no telemetry — skip the consent screen entirely.
+      game.telemetryConsentShown = true;
+      return false;
+    }
+    const overlay = document.getElementById('consent-overlay');
+    if (!overlay) return false;
+    overlay.classList.remove('hidden');
+    const btn = document.getElementById('consent-accept');
+    if (btn) btn.focus();
+    return true;
+  },
+
+  acceptConsent(keepOn) {
+    game.telemetryConsentShown = true;
+    game.telemetryOptOut = !keepOn;
+    Game.save();
+    const overlay = document.getElementById('consent-overlay');
+    if (overlay) overlay.classList.add('hidden');
+    if (keepOn) {
+      addLog('Anonymous stats ON. Thanks for helping tune the game.', '');
+    } else {
+      addLog('Anonymous stats OFF. Nothing being sent.', '');
+      Telemetry._queue.length = 0;
+    }
+    // Continue to the intro if it hasn't been shown yet.
+    if (!game.introSeen) Game.showIntro();
   },
 
   // --- INTRO ---
@@ -1188,6 +1262,7 @@ const Game = {
     } else {
       addLog(`${bld.name} upgraded to Lv.${newLvl}.`, 'reward');
     }
+    Telemetry.record('building_built', `${id}:${newLvl}`);
   },
 
   buyUpgrade(id) {
@@ -1206,6 +1281,7 @@ const Game = {
     } else {
       addLog(`Research complete: ${upg.name}. ${upg.effect}`, 'reward');
     }
+    Telemetry.record('upgrade_bought', id);
   },
 
   buyRepeatable(id) {
@@ -1242,6 +1318,7 @@ const Game = {
     game.zone.fighting = false;
     game.zone.casualtyAccum = 0;
     addLog('Goblins retreated!', 'combat');
+    Telemetry.record('combat_retreat', 'manual');
   },
 
   nextZone() {
@@ -1554,6 +1631,7 @@ function tickResources(dt) {
       if (!game._starvationWarned) {
         addLog('NO FOOD! Goblins walking away! They not stupid — can\'t work on empty tummy! Build farms! Assign farmers!', 'warning');
         game._starvationWarned = true;
+        Telemetry.record('starvation_death');
       }
       // Unassign if needed
       while (getTotalAssigned() > Math.floor(game.resources.goblins)) {
@@ -1587,6 +1665,7 @@ function tickCombat(dt) {
     game.zone.fighting = false;
     game.zone.casualtyAccum = 0;
     addLog('No fighters left — retreating!', 'warning');
+    Telemetry.record('combat_retreat', 'unassigned');
     return;
   }
 
@@ -1609,6 +1688,7 @@ function tickCombat(dt) {
       game.zone.fighting = false;
       game.zone.casualtyAccum = 0;
       addLog('All fighters lost! Retreat! RETREAT!', 'warning');
+      Telemetry.record('all_fighters_lost', String(game.zone.current + 1));
       return;
     }
   }
@@ -1692,6 +1772,14 @@ function tick() {
   tickCombat(Math.min(elapsed, 1));
   checkUnlocks();
   checkAchievements();
+  // Accumulate cumulative playtime — active-tab only, cap per-tick at 2s
+  // to avoid long-sleep tabs polluting the metric.
+  game.stats.totalPlaySeconds = (game.stats.totalPlaySeconds || 0) + Math.min(elapsed, 2);
+  // Heartbeat: one snapshot every ~5 minutes so long-lived sessions stay visible.
+  if (!Telemetry._lastHeartbeat || now - Telemetry._lastHeartbeat > 5 * 60 * 1000) {
+    Telemetry._lastHeartbeat = now;
+    Telemetry.record('heartbeat');
+  }
   // Flush telemetry every ~15s
   if (now - Telemetry._lastFlush > 15000) Telemetry.flush(false);
 }
@@ -1806,7 +1894,11 @@ const UI = {
     let activeStep = null;
     for (const step of TUTORIAL) {
       if (game.tutorialDismissed.includes(step.id)) continue;
-      if (step.done()) { game.tutorialDismissed.push(step.id); continue; }
+      if (step.done()) {
+        game.tutorialDismissed.push(step.id);
+        Telemetry.record('tutorial_completed', step.id);
+        continue;
+      }
       if (step.condition()) { activeStep = step; break; }
     }
 
@@ -1826,6 +1918,7 @@ const UI = {
     const stepId = textEl.dataset.stepId;
     if (stepId && !game.tutorialDismissed.includes(stepId)) {
       game.tutorialDismissed.push(stepId);
+      Telemetry.record('tutorial_dismissed', stepId);
     }
   },
 
@@ -2391,12 +2484,18 @@ function init() {
   _silentUnlocks = false;
   checkMemos();
 
-  // Show intro on first play
-  if (!game.introSeen) {
+  // First-time-ever consent notice — must appear BEFORE intro and BEFORE any
+  // telemetry fires. showConsent returns true if the overlay was displayed;
+  // the intro is then triggered from acceptConsent().
+  const consentShowing = !game.telemetryConsentShown && Game.showConsent();
+  if (!consentShowing && !game.introSeen) {
     Game.showIntro();
   }
 
   // Telemetry: one session_start per page load, flush pending on hide/unload.
+  // (If consent is showing, record() no-ops for opt-outs and queues for opt-ins;
+  // either way the event describes when the session actually began.)
+  game.stats.sessionNumber = (game.stats.sessionNumber || 0) + 1;
   Telemetry.record('session_start');
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') Telemetry.flush(true);

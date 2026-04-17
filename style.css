@@ -151,6 +151,62 @@ body {
   border-color: var(--gold);
 }
 
+.intro-btn-secondary {
+  border-color: var(--border);
+  color: var(--text-dim);
+}
+
+.intro-btn-secondary:hover,
+.intro-btn-secondary:focus-visible {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--text-dim);
+  color: var(--text);
+}
+
+/* --- CONSENT OVERLAY --- */
+.consent-content {
+  max-width: 640px;
+  text-align: left;
+}
+
+.consent-heading {
+  color: var(--gold);
+  font-size: 1.3rem;
+  margin: 0 0 16px 0;
+  text-align: center;
+}
+
+.consent-body {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-dim);
+  margin-bottom: 24px;
+}
+
+.consent-body p {
+  margin: 0 0 12px 0;
+}
+
+.consent-body strong {
+  color: var(--text);
+}
+
+.consent-body em {
+  color: var(--gold);
+  font-style: normal;
+}
+
+.consent-gear {
+  color: var(--gold);
+}
+
+.consent-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
 /* --- CHANGELOG OVERLAY --- */
 .changelog-overlay {
   position: fixed;
