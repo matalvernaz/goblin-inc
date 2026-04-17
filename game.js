@@ -6,7 +6,7 @@
 // Anonymous telemetry: random session ID, progression milestones only, no
 // IP retention, opt-out via Settings menu. See /home/matt/goblin-telemetry/.
 // Set to '' to disable entirely at build time.
-const TELEMETRY_ENDPOINT = 'https://goblin-telemetry.REPLACE-ME.workers.dev';
+const TELEMETRY_ENDPOINT = 'https://goblin-telemetry.matalvernaz.workers.dev';
 const GAME_VERSION = 'v0.4';
 
 // ===========================================
