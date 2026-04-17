@@ -3,6 +3,12 @@
 // An incremental game of goblin capitalism
 // ============================================
 
+// Anonymous telemetry: random session ID, progression milestones only, no
+// IP retention, opt-out via Settings menu. See /home/matt/goblin-telemetry/.
+// Set to '' to disable entirely at build time.
+const TELEMETRY_ENDPOINT = 'https://goblin-telemetry.REPLACE-ME.workers.dev';
+const GAME_VERSION = 'v0.4';
+
 // ===========================================
 // SECTION 1: GAME DATA
 // ===========================================
@@ -699,6 +705,7 @@ const CHANGELOG = [
       'New weird-play rewards: clear a zone with exactly one fighter, franchise at exactly Zone 10, research every upgrade in a single run, clear Zone 30 without ever franchising.',
       'Franchise Points now scale with your FP-gain bonuses from awards.',
       'Existing saves carry over — any awards you already qualify for are granted on your first tick back.',
+      'Anonymous telemetry — random session ID, progression milestones only, no names or IPs retained. Toggle it off any time in Settings (gear icon → Send anonymous gameplay stats).',
     ],
   },
   {
@@ -821,6 +828,8 @@ function defaultState() {
     dynamicMemos: [],
     log: [],
     lastTick: Date.now(),
+    telemetryOptOut: false,
+    telemetrySessionId: null,
     version: 2,
   };
 }
@@ -874,6 +883,82 @@ function addLog(msg, type = '') {
     announce(msg);
   }
 }
+
+
+// ===========================================
+// SECTION 3B: TELEMETRY (anonymous, opt-out)
+// ===========================================
+
+const Telemetry = {
+  _queue: [],
+  _lastFlush: 0,
+  _sessionStart: Date.now(),
+
+  enabled() {
+    if (!TELEMETRY_ENDPOINT || TELEMETRY_ENDPOINT.includes('REPLACE-ME')) return false;
+    // Opt-out flag lives on the save so it roundtrips with the rest of settings.
+    return game.telemetryOptOut !== true;
+  },
+
+  sessionId() {
+    if (!game.telemetrySessionId) {
+      const rnd = (globalThis.crypto && globalThis.crypto.randomUUID)
+        ? globalThis.crypto.randomUUID()
+        : 'x' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      game.telemetrySessionId = rnd;
+    }
+    return game.telemetrySessionId;
+  },
+
+  snapshot() {
+    return {
+      zone: game.zone?.current || 0,
+      shinies: Math.floor(game.resources?.shinies || 0),
+      goblins: Math.floor(game.resources?.goblins || 0),
+      franchise: game.prestige?.times || 0,
+      clicks: game.stats?.totalClicks || 0,
+      playSeconds: Math.floor((Date.now() - Telemetry._sessionStart) / 1000),
+    };
+  },
+
+  record(event, detail = '') {
+    if (!Telemetry.enabled()) return;
+    Telemetry._queue.push({
+      event,
+      detail,
+      ...Telemetry.snapshot(),
+    });
+    // Soft cap queue to avoid unbounded growth if offline.
+    if (Telemetry._queue.length > 200) {
+      Telemetry._queue.splice(0, Telemetry._queue.length - 200);
+    }
+  },
+
+  flush(sync = false) {
+    if (!Telemetry.enabled()) { Telemetry._queue.length = 0; return; }
+    if (Telemetry._queue.length === 0) return;
+    const payload = JSON.stringify({
+      sessionId: Telemetry.sessionId(),
+      version: GAME_VERSION,
+      events: Telemetry._queue,
+    });
+    Telemetry._queue = [];
+    Telemetry._lastFlush = Date.now();
+    try {
+      if (sync && navigator.sendBeacon) {
+        const blob = new Blob([payload], { type: 'application/json' });
+        navigator.sendBeacon(TELEMETRY_ENDPOINT, blob);
+      } else {
+        fetch(TELEMETRY_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+          keepalive: true,
+        }).catch(() => { /* telemetry must never break the game */ });
+      }
+    } catch { /* ignore */ }
+  },
+};
 
 
 // ===========================================
@@ -997,6 +1082,18 @@ const Game = {
     } catch (e) {
       addLog('Import failed — invalid data.', 'warning');
     }
+  },
+
+  setTelemetryOptOut(optOut) {
+    game.telemetryOptOut = !!optOut;
+    if (optOut) {
+      // Drop any queued events immediately; don't send them after opt-out.
+      Telemetry._queue.length = 0;
+      addLog('Anonymous stats OFF. Nothing being sent.', '');
+    } else {
+      addLog('Anonymous stats ON. Thank you for helping tune the game.', '');
+    }
+    Game.save();
   },
 
   hardReset() {
@@ -1219,6 +1316,7 @@ const Game = {
     // Grant minimalist after re-apply so its bonus multiplies into the fresh state
     if (minimalist) grantAchievement('minimalist');
 
+    Telemetry.record('franchise', String(game.prestige.times));
     addLog(`Franchised! Earned ${points} Franchise Points.`, 'reward');
     addMemo({
       type: 'prestige',
@@ -1389,6 +1487,7 @@ function grantAchievement(id) {
   if (typeof UI !== 'undefined') {
     UI._lastAwardsState = '';
   }
+  Telemetry.record('achievement', id);
 }
 
 function checkAchievements() {
@@ -1522,6 +1621,7 @@ function tickCombat(dt) {
     game.stats.totalZonesCleared++;
     // Solo Act: cleared a zone with exactly 1 fighter assigned
     if (game.assignments.fighting === 1) grantAchievement('soloAct');
+    Telemetry.record('zone_clear', String(game.zone.current + 1));
 
     const z = ZONES[game.zone.current] || {};
     const reward = zs.reward;
@@ -1592,6 +1692,8 @@ function tick() {
   tickCombat(Math.min(elapsed, 1));
   checkUnlocks();
   checkAchievements();
+  // Flush telemetry every ~15s
+  if (now - Telemetry._lastFlush > 15000) Telemetry.flush(false);
 }
 
 function checkMemos() {
@@ -1760,6 +1862,18 @@ const UI = {
     const isHidden = menu.classList.contains('hidden');
     menu.classList.toggle('hidden');
     btn.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+    // Sync telemetry toggle checkbox with current save state
+    const tBox = document.getElementById('telemetry-toggle');
+    if (tBox) {
+      const enabled = !game.telemetryOptOut;
+      tBox.checked = enabled;
+      const label = tBox.closest('.settings-toggle-row');
+      if (label) label.setAttribute('aria-checked', String(enabled));
+      // Hide the toggle entirely when endpoint isn't configured (dev builds)
+      if (!TELEMETRY_ENDPOINT || TELEMETRY_ENDPOINT.includes('REPLACE-ME')) {
+        if (label) label.style.display = 'none';
+      }
+    }
     // Close on click outside
     if (isHidden) {
       setTimeout(() => {
@@ -2281,6 +2395,16 @@ function init() {
   if (!game.introSeen) {
     Game.showIntro();
   }
+
+  // Telemetry: one session_start per page load, flush pending on hide/unload.
+  Telemetry.record('session_start');
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') Telemetry.flush(true);
+  });
+  window.addEventListener('pagehide', () => {
+    Telemetry.record('session_end');
+    Telemetry.flush(true);
+  });
 
   // Auto-save every 30 seconds
   setInterval(() => Game.save(), 30000);

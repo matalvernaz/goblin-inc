@@ -20,6 +20,10 @@
             <button role="menuitem" onclick="Game.save(); UI.toggleSettings()">Save Game</button>
             <button role="menuitem" onclick="Game.exportSave(); UI.toggleSettings()">Export Save</button>
             <button role="menuitem" onclick="Game.importSave(); UI.toggleSettings()">Import Save</button>
+            <label class="settings-toggle-row" role="menuitemcheckbox" aria-checked="true">
+              <input type="checkbox" id="telemetry-toggle" onchange="Game.setTelemetryOptOut(!this.checked)" checked>
+              <span>Send anonymous gameplay stats</span>
+            </label>
             <button role="menuitem" id="hard-reset-btn" onclick="Game.hardReset(); UI.toggleSettings()">Reset All Progress</button>
           </div>
         </div>

@@ -376,6 +376,29 @@ h1 .subtitle {
   color: var(--red) !important;
 }
 
+.settings-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+.settings-toggle-row:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.settings-toggle-row input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--gold);
+}
+
 /* --- RESOURCE BAR --- */
 #resource-bar {
   display: flex;
