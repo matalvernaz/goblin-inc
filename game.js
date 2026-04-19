@@ -7,7 +7,7 @@
 // IP retention, opt-out via Settings menu. See /home/matt/goblin-telemetry/.
 // Set to '' to disable entirely at build time.
 const TELEMETRY_ENDPOINT = 'https://goblin-telemetry.matalvernaz.workers.dev';
-const GAME_VERSION = 'v0.6';
+const GAME_VERSION = 'v0.6.1';
 // Saves older than this major-version are force-reset. Bump when the state
 // shape changes in ways deepMerge can't heal (e.g. combat rework removing
 // game.zone.fighting, changing assignment semantics, etc).
@@ -855,6 +855,13 @@ const INTRO_PAGES = [
 
 
 const CHANGELOG = [
+  {
+    version: 'v0.6.1 — Formation Button Fix',
+    date: '2026-04-18',
+    changes: [
+      'Fixed formation toggle buttons (WALL UP, SNATCH-N-RUN) not responding to clicks. The selector was rebuilding every frame, so mousedown and mouseup landed on different button instances and the browser never fired a click. Reported by Dark on the forum.',
+    ],
+  },
   {
     version: 'v0.6 — Combat Rework: Idle At Last',
     date: '2026-04-17',
@@ -1933,12 +1940,19 @@ function _matchupHint(eff) {
 // DOM helpers for the formation selector + policy controls. Kept as module-
 // level so UI.renderDungeon stays readable. All rely on container elements
 // declared in index.html; missing elements are treated as "feature disabled."
+let _lastFormationState = '';
 function _renderFormationSelector() {
   const container = document.getElementById('formation-selector');
   if (!container) return;
   const available = FORMATIONS.filter(f => f.unlocked());
+  // Fingerprint selected + unlocked set. Rebuilding innerHTML every frame
+  // destroys buttons mid-click and the browser never fires the click event.
+  const stateKey = `${game.combat.formation}|${available.map(f => f.id).join(',')}`;
+  if (stateKey === _lastFormationState) return;
+  _lastFormationState = stateKey;
   if (available.length <= 1) {
     container.style.display = 'none';
+    container.innerHTML = '';
     return;
   }
   container.style.display = '';
