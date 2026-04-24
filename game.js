@@ -7,7 +7,7 @@
 // IP retention, opt-out via Settings menu. See /home/matt/goblin-telemetry/.
 // Set to '' to disable entirely at build time.
 const TELEMETRY_ENDPOINT = 'https://goblin-telemetry.matalvernaz.workers.dev';
-const GAME_VERSION = 'v0.6.1';
+const GAME_VERSION = 'v0.6.2';
 // Saves older than this major-version are force-reset. Bump when the state
 // shape changes in ways deepMerge can't heal (e.g. combat rework removing
 // game.zone.fighting, changing assignment semantics, etc).
@@ -855,6 +855,13 @@ const INTRO_PAGES = [
 
 
 const CHANGELOG = [
+  {
+    version: 'v0.6.2 — Telemetry Fix',
+    date: '2026-04-24',
+    changes: [
+      'Fixed the franchise event wiping telemetry consent — franchising used to silently turn off anonymous stats until the next page reload, which hid the `franchise`, `session_end`, and post-franchise `achievement` events entirely. This one is why awards like Repeat Customer (fran1) almost never showed up.',
+    ],
+  },
   {
     version: 'v0.6.1 — Formation Button Fix',
     date: '2026-04-18',
@@ -1736,6 +1743,15 @@ const Game = {
       unlocked: [...(game.achievements?.unlocked || [])],
       times: { ...(game.achievements?.times || {}) },
     };
+    // Telemetry identity survives a franchise — otherwise defaultState() below
+    // flips telemetryConsentShown back to false and every subsequent flush()
+    // silently drops the queue until the next page reload. That was hiding
+    // `franchise`, `session_end`, and post-franchise `achievement` events.
+    const keepTelemetry = {
+      consentShown: !!game.telemetryConsentShown,
+      optOut: !!game.telemetryOptOut,
+      sessionId: game.telemetrySessionId || null,
+    };
 
     // "Minimalist Management" — franchised at exactly Zone 10 (index 9), no further
     const minimalist = game.zone.current === 9;
@@ -1747,6 +1763,9 @@ const Game = {
     game.dynamicMemos = keepDynamicMemos;
     game.introSeen = keepIntroSeen;
     game.achievements = keepAchievements;
+    game.telemetryConsentShown = keepTelemetry.consentShown;
+    game.telemetryOptOut = keepTelemetry.optOut;
+    game.telemetrySessionId = keepTelemetry.sessionId;
 
     // Re-apply prestige perks
     for (const perk of PRESTIGE_PERKS) {
@@ -1761,6 +1780,10 @@ const Game = {
     if (minimalist) grantAchievement('minimalist');
 
     Telemetry.record('franchise', String(game.prestige.times));
+    // Ship the franchise event (and anything still queued) immediately so it
+    // survives even if the player closes the tab or browser crashes before
+    // the next 15s tick flush.
+    Telemetry.flush(true);
     addLog(`Franchised! Earned ${points} Franchise Points.`, 'reward');
     addMemo({
       type: 'prestige',
