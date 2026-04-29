@@ -7,7 +7,7 @@
 // IP retention, opt-out via Settings menu. See /home/matt/goblin-telemetry/.
 // Set to '' to disable entirely at build time.
 const TELEMETRY_ENDPOINT = 'https://goblin-telemetry.matalvernaz.workers.dev';
-const GAME_VERSION = 'v0.6.2';
+const GAME_VERSION = 'v0.6.3';
 // Saves older than this major-version are force-reset. Bump when the state
 // shape changes in ways deepMerge can't heal (e.g. combat rework removing
 // game.zone.fighting, changing assignment semantics, etc).
@@ -855,6 +855,13 @@ const INTRO_PAGES = [
 
 
 const CHANGELOG = [
+  {
+    version: 'v0.6.3 — Zone 0 Starvation Fix',
+    date: '2026-04-29',
+    changes: [
+      'Early game no longer starves itself out. The goblin food math used a quadratic-from-zero overhead term that put a Hut Lv.1 cap of 5 goblins above what a Farm Lv.1 with one farmer could feed — net -0.2 food/s no matter how the player allocated. Telemetry showed 13 of 16 install-clearers starving before reaching zone 1. Logistics overhead now only kicks in past 4 goblins.',
+    ],
+  },
   {
     version: 'v0.6.2 — Telemetry Fix',
     date: '2026-04-24',
@@ -1858,9 +1865,17 @@ function getProductionRates() {
   let foodPS = game.assignments.farming * 0.4 * farmBonus * game.multipliers.food * globalMult;
   // Small base from building
   foodPS += farmLvl * 0.08 * game.multipliers.food * globalMult;
-  // Goblins eat food — more goblins means more logistics overhead
+  // Goblins eat food — flat per-head cost early, plus a logistics-overhead
+  // term that only kicks in past 4 goblins. The old `0.15 + 0.005*N` curve
+  // made zone 0 unwinnable: a Hut Lv.1 caps at 5 goblins and Farm Lv.1 with
+  // one farmer outputs ~0.68/s, but the quadratic put consumption at 0.875/s
+  // before the player could unlock anything else to assign idle goblins to.
+  // Telemetry showed 13/16 install-clearers starved before reaching zone 1.
   const totalGoblins = Math.floor(game.resources.goblins);
-  let foodConsumption = totalGoblins * (0.15 + 0.005 * totalGoblins);
+  let foodConsumption = totalGoblins * 0.12;
+  if (totalGoblins > 4) {
+    foodConsumption += 0.005 * (totalGoblins - 4) * totalGoblins;
+  }
   // Fighters consume extra food while actively fighting (war rations).
   // "Active" = auto-engage conditions met: fighters present, not paused,
   // zone not in advance-countdown. Matches tickCombat's own check.
