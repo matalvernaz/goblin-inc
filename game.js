@@ -7,7 +7,7 @@
 // IP retention, opt-out via Settings menu. See /home/matt/goblin-telemetry/.
 // Set to '' to disable entirely at build time.
 const TELEMETRY_ENDPOINT = 'https://goblin-telemetry.matalvernaz.workers.dev';
-const GAME_VERSION = 'v0.6.3';
+const GAME_VERSION = 'v0.6.4';
 // Saves older than this major-version are force-reset. Bump when the state
 // shape changes in ways deepMerge can't heal (e.g. combat rework removing
 // game.zone.fighting, changing assignment semantics, etc).
@@ -855,6 +855,14 @@ const INTRO_PAGES = [
 
 
 const CHANGELOG = [
+  {
+    version: 'v0.6.4 — Zone 0 Starvation Fix (Take Two)',
+    date: '2026-05-06',
+    changes: [
+      'The v0.6.3 fix targeted the wrong number — Hut Lv.1 actually caps at 10 goblins (`5 + hutLevel*5`), not 5, so even after the overhead change a Farm Lv.1 with one farmer (~0.68/s) still couldn\'t feed a full hut. Per-goblin food cost lowered from 0.12/s to 0.08/s, so two farmers at Farm Lv.1 are enough to feed a full Hut Lv.1.',
+      'Panic auto-farmer: if food is dropping and there\'s an idle goblin in earshot, an idle goblin grabs a mushroom basket on its own. Telemetry showed ~75% of zone-0 sessions still hit starvation in v0.6.3 — turns out a lot of new players never find the Workforce tab in time. The player can still re-assign manually; this only prevents a silent wipe before they\'ve discovered roles.',
+    ],
+  },
   {
     version: 'v0.6.3 — Zone 0 Starvation Fix',
     date: '2026-04-29',
@@ -1865,14 +1873,14 @@ function getProductionRates() {
   let foodPS = game.assignments.farming * 0.4 * farmBonus * game.multipliers.food * globalMult;
   // Small base from building
   foodPS += farmLvl * 0.08 * game.multipliers.food * globalMult;
-  // Goblins eat food — flat per-head cost early, plus a logistics-overhead
-  // term that only kicks in past 4 goblins. The old `0.15 + 0.005*N` curve
-  // made zone 0 unwinnable: a Hut Lv.1 caps at 5 goblins and Farm Lv.1 with
-  // one farmer outputs ~0.68/s, but the quadratic put consumption at 0.875/s
-  // before the player could unlock anything else to assign idle goblins to.
-  // Telemetry showed 13/16 install-clearers starved before reaching zone 1.
+  // Goblins eat food. Curve is flat per-head until N>4, then a small
+  // quadratic logistics overhead. Hut Lv.1 actually caps at 10 goblins
+  // (`5 + hutLevel*5`), so the v0.6.3 fix targeted the wrong number — at
+  // 0.12/goblin a Lv.1 farm + one farmer (0.68/s) couldn't feed even 6
+  // goblins. Lowering the per-head rate to 0.08 makes 2 farmers at Farm
+  // Lv.1 enough to feed the full Hut Lv.1 cap.
   const totalGoblins = Math.floor(game.resources.goblins);
-  let foodConsumption = totalGoblins * 0.12;
+  let foodConsumption = totalGoblins * 0.08;
   if (totalGoblins > 4) {
     foodConsumption += 0.005 * (totalGoblins - 4) * totalGoblins;
   }
@@ -2161,6 +2169,24 @@ function tickResources(dt) {
     game._lastFoodWarning = true;
   }
   if (foodPct >= 0.3) game._lastFoodWarning = false;
+
+  // Panic auto-farmer — telemetry showed ~75% of zone-0 sessions hit a
+  // starvation event because new players never discover the workforce
+  // tab. If food is dropping AND there's an idle goblin AND a farm
+  // exists, an idle goblin grabs a basket on its own. The player can
+  // still re-assign manually; this just prevents a silent wipe.
+  if ((game.buildings.mushroomFarm || 0) >= 1
+      && rates.food < 0
+      && foodPct < 0.40
+      && getIdleGoblins() > 0) {
+    game.assignments.farming++;
+    if (!game._panicFarmerAnnounced) {
+      addLog('Idle goblin sees food dropping and grabs a mushroom basket. (Auto-assigned to farming.)', 'info');
+      announce('Goblin to farming. Tummy says so.');
+      game._panicFarmerAnnounced = true;
+    }
+  }
+  if (foodPct >= 0.6) game._panicFarmerAnnounced = false;
 
   // Floor at 0
   if (game.resources.shinies < 0) game.resources.shinies = 0;
