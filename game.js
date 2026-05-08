@@ -7,7 +7,7 @@
 // IP retention, opt-out via Settings menu. See /home/matt/goblin-telemetry/.
 // Set to '' to disable entirely at build time.
 const TELEMETRY_ENDPOINT = 'https://goblin-telemetry.matalvernaz.workers.dev';
-const GAME_VERSION = 'v0.6.4';
+const GAME_VERSION = 'v0.6.5';
 // Saves older than this major-version are force-reset. Bump when the state
 // shape changes in ways deepMerge can't heal (e.g. combat rework removing
 // game.zone.fighting, changing assignment semantics, etc).
@@ -587,6 +587,8 @@ const MEMOS = [
   // The truth about The Hand, and what you're really building
   { zone: 21, type: 'story', title: 'RE: IPO & THE REAL SHAREHOLDERS',
     body: 'Goblin Inc. went public today. Not on a stock exchange — we held an open assembly. Every goblin got one share. One vote.\n\nKevin stood up and said: "I used to deliver swords to heroes who wanted to kill us. Now I decide what we have for lunch on Fridays. That\'s progress."\n\nSir Reginald said: "I used to think glory meant fighting. Now I think it means building something worth protecting."\n\nCynthia said: "You\'re all technically in violation of seventeen Guild statutes. I\'m so proud."\n\nThe share price is 1 Shiny. It will always be 1 Shiny. Because the value of Goblin Inc. isn\'t measured in gold.' },
+  { zone: 23, type: 'story', title: 'RE: SCOUTING REPORT — OTHER YOU',
+    body: 'Scout-goblin came back from deep tunnels. Eyes WIDE. Hat backwards.\n\n"Boss," she said. "Found OTHER YOU down there. Same goblin. Different book. WRONG book."\n\nShe drew picture on cave wall: alternate-us, sitting in fancy chair, looking BORED. "Other You has staff. Other You has CARPET. Important part: Other You PATCHES SELF mid-fight. Wounds close up. Like manager who heals own paperwork by yelling at intern."\n\nGrik looked at picture. Squinted. Said one thing:\n\n"Need Snatch-N-Run. Other Us hate getting pockets touched. Steal regen out of them. If we walk in without it, we hit Other You and Other You just... grow back. Forever. We die of OLD AGE first."\n\n(Translation: open the Research tab. Buy Snatch-N-Run Proto-Call before going in. Trust the scout. The boss heals fast — you need the formation that breaks it.)' },
   { zone: 23, type: 'story', title: 'RE: THE INTERDIMENSIONAL LOADING DOCK',
     body: 'The portal in the loading dock connects to other dungeons. Other VERSIONS of this dungeon, in other realities.\n\nIn some of them, the old company is still running. We can see the goblins through the portal, working in silence, eyes empty, numbers on their backs.\n\nIn some of them, nobody ever found the book.\n\nI keep thinking about Employee #1. They hid books across the dungeon, hoping someone would find one. In our reality, I did. In how many others did the books rot unread?\n\nWe have a portal now. We have a company that works. We have proof that there\'s another way.\n\nMaybe it\'s time to start delivering books.' },
   { zone: 25, type: 'boss', title: 'RE: THE OTHER YOU',
@@ -855,6 +857,18 @@ const INTRO_PAGES = [
 
 
 const CHANGELOG = [
+  {
+    version: 'v0.6.5 — Tuning & Boss Legibility Pass',
+    date: '2026-05-08',
+    changes: [
+      'Combat has weight again. Casualty rate ×6 across the board. Formations now control survival, not just clear speed: right matchup gives 1.5× damage and HALF casualties; wrong matchup gives 0.65× damage and 2.5× casualties. Picking the wrong formation finally hurts.',
+      'War rations no longer go cosmic. Fighter food cost now scales with the SQRT of zone strength instead of full zone strength — by zone 40+ the old formula was eating millions of food/sec and turning food into a silent cliff. New formula keeps zone pressure visible but tractable.',
+      'Panic auto-farmer is gentler. It now waits 5 seconds between auto-assignments, so it stops silently stripping your workforce when food dips for a frame. Each intervention is logged.',
+      'Bosses tell you their weakness. Boss zones now show "Briefing: weak to X" and "Bad idea: Y" right in the description — no longer gated behind the Enemy Intel research.',
+      'New scouting memo at Zone 23 warns about Other-You\'s regen and recommends Snatch-N-Run before the fight. Telemetry showed Z23→Z24 was the biggest funnel cliff in the game (40% drop) — players walking in without the counter and bouncing off a heal wall.',
+      'Mercy clause: regen-gimmick bosses heal at half rate if the player never unlocked the counter-formation. The wall is still there, but it bends instead of bricking your run.',
+    ],
+  },
   {
     version: 'v0.6.4 — Zone 0 Starvation Fix (Take Two)',
     date: '2026-05-06',
@@ -1890,7 +1904,12 @@ function getProductionRates() {
   let combatFoodCost = 0;
   if (isCombatActive()) {
     const zs = getZoneStats(game.zone.current);
-    combatFoodCost = game.assignments.fighting * 0.01 * zs.str;
+    // War rations scale with sqrt(zone.str) instead of zone.str — the
+    // old linear formula went cosmic past zone 30 (str = 1.35^zone), so
+    // by zone 40+ a tiny army was eating millions of food/sec and the
+    // food economy turned into a silent cliff. Square-root keeps zone
+    // pressure visible without making the game unwinnable.
+    combatFoodCost = game.assignments.fighting * 0.05 * Math.sqrt(zs.str);
     foodConsumption += combatFoodCost;
   }
   const netFoodPS = foodPS - foodConsumption;
@@ -1946,17 +1965,38 @@ function getEffectiveCombatStats(zoneIdx) {
   let casMult = noFormation ? 1.0 : formation.casMult;
   let lootMult = noFormation ? 1.0 : formation.lootMult;
 
-  // Rock-paper-scissors matchup (disabled by noFormationBonus boss)
+  // Rock-paper-scissors matchup. Right matchup = +50% damage, half
+  // casualties. Wrong matchup = -35% damage, 2.5x casualties. Casualty
+  // weighting is what makes formation choice matter for survival, not
+  // just clear speed (the old ±40% damage-only version washed out
+  // against exponential power scaling).
   if (!noFormation) {
-    if (enemy.weakTo === formation.id) dmgMult *= 1.4;
-    if (enemy.strongVs === formation.id) dmgMult *= 0.6;
+    if (enemy.weakTo === formation.id) {
+      dmgMult *= 1.5;
+      casMult *= 0.5;
+    }
+    if (enemy.strongVs === formation.id) {
+      dmgMult *= 0.65;
+      casMult *= 2.5;
+    }
   }
 
   // Boss-specific modifiers
   let regenPct = 0;
   if (boss && boss.gimmick) {
     if (boss.gimmick.type === 'casualtyMult') casMult *= boss.gimmick.value;
-    if (boss.gimmick.type === 'regen') regenPct = boss.gimmick.value;
+    if (boss.gimmick.type === 'regen') {
+      let r = boss.gimmick.value;
+      // Mercy clause: late-research players who never unlocked the
+      // counter-formation get the regen halved. Telemetry showed
+      // Z23→Z24 was the biggest funnel cliff in the game (40% drop) —
+      // Other-Self is a regen wall that needs Snatch-N-Run, but Snatch
+      // is research-gated and many players skipped it. Without this,
+      // they hit a wall they have no signal to fix.
+      if (enemy.weakTo === 'snatch' && !game.unlocks.formationSnatch) r *= 0.5;
+      if (enemy.weakTo === 'wall' && !game.unlocks.formationWall) r *= 0.5;
+      regenPct = r;
+    }
     if (boss.gimmick.type === 'lootBonus') lootMult *= boss.gimmick.value;
   }
 
@@ -1981,6 +2021,24 @@ function _matchupHint(eff) {
   if (e.weakTo === f.id) return `Intel: ${f.name} is STRONG vs ${e.name}. Good pick.`;
   if (e.strongVs === f.id) return `Intel: ${f.name} is WEAK vs ${e.name}. Consider switching.`;
   return `Intel: ${f.name} is neutral vs ${e.name}.`;
+}
+
+// Always-visible weakness/counter line for boss zones. Telemetry showed
+// the Z23→Z24 funnel cliff was players hitting Other-Self without the
+// Snatch counter; gating the hint behind Enemy Intel research meant they
+// had no signal to fix it. For bosses we tell the player flat-out what
+// works and what doesn't — they can still pick a worse formation, but
+// it's an informed choice.
+function _bossWeaknessLine(eff) {
+  if (!eff.boss) return '';
+  if (eff.noFormation) return 'Briefing: no known weakness. Bring everything.';
+  const fName = id => FORMATIONS.find(f => f.id === id)?.name;
+  const weak = eff.enemy.weakTo ? fName(eff.enemy.weakTo) : null;
+  const strong = eff.enemy.strongVs ? fName(eff.enemy.strongVs) : null;
+  const parts = [];
+  if (weak) parts.push(`Briefing: weak to ${weak}.`);
+  if (strong) parts.push(`Bad idea: ${strong}.`);
+  return parts.join(' ');
 }
 
 // DOM helpers for the formation selector + policy controls. Kept as module-
@@ -2170,23 +2228,24 @@ function tickResources(dt) {
   }
   if (foodPct >= 0.3) game._lastFoodWarning = false;
 
-  // Panic auto-farmer — telemetry showed ~75% of zone-0 sessions hit a
-  // starvation event because new players never discover the workforce
-  // tab. If food is dropping AND there's an idle goblin AND a farm
-  // exists, an idle goblin grabs a basket on its own. The player can
-  // still re-assign manually; this just prevents a silent wipe.
+  // Panic auto-farmer — fires at most every 5s while food is dropping
+  // and there are idle goblins. Original bug was one assignment per
+  // tick (15Hz), which silently stripped the workforce in under a
+  // second. Cooldown gives the food rate time to update and the player
+  // time to notice. Each intervention is logged so the safety-net is
+  // visible, not invisible.
+  game._panicFarmerCooldown = Math.max(0, (game._panicFarmerCooldown || 0) - dt);
   if ((game.buildings.mushroomFarm || 0) >= 1
       && rates.food < 0
       && foodPct < 0.40
-      && getIdleGoblins() > 0) {
+      && getIdleGoblins() > 0
+      && game._panicFarmerCooldown <= 0) {
     game.assignments.farming++;
-    if (!game._panicFarmerAnnounced) {
-      addLog('Idle goblin sees food dropping and grabs a mushroom basket. (Auto-assigned to farming.)', 'info');
-      announce('Goblin to farming. Tummy says so.');
-      game._panicFarmerAnnounced = true;
-    }
+    game._panicFarmerCooldown = 5;
+    addLog(`Tummy alarm — idle goblin grabs a basket. Now ${game.assignments.farming} farming.`, 'info');
+    announce('Goblin to farming. Tummy says so.');
   }
-  if (foodPct >= 0.6) game._panicFarmerAnnounced = false;
+  if (foodPct >= 0.6) game._panicFarmerCooldown = 0;
 
   // Floor at 0
   if (game.resources.shinies < 0) game.resources.shinies = 0;
@@ -2265,7 +2324,12 @@ function tickCombat(dt) {
   // damage doesn't accidentally worsen your survival rate beyond its own
   // casMult.
   const casualtyRate = (base.str / (modPower + base.str)) * eff.casMult;
-  game.zone.casualtyAccum += casualtyRate * 0.005 * dt;
+  // Casualty floor bumped 6× (0.005 → 0.03) so combat has weight again.
+  // Telemetry: 1 wipeout in 451 zone clears — the old rate made losing
+  // goblins basically cosmetic. With formation casualty modifiers
+  // (×0.5 right matchup, ×2.5 wrong), this gives a real risk band:
+  // ~1 cas/130s at parity with right formation, ~1 cas/27s with wrong.
+  game.zone.casualtyAccum += casualtyRate * 0.03 * dt;
   while (game.zone.casualtyAccum >= 1 && game.assignments.fighting > 0) {
     game.zone.casualtyAccum -= 1;
     game.assignments.fighting--;
@@ -2910,13 +2974,20 @@ const UI = {
     if (eff.boss && eff.boss.bossDesc) {
       descText += ` ${eff.boss.bossDesc}`;
     }
-    // Enemy archetype (always shown) + matchup intel (only when unlocked)
+    // Enemy archetype (always shown). Boss weakness line is always shown
+    // on boss zones — telemetry showed the Z24 cliff was players entering
+    // without knowing the counter. Matchup intel (current formation vs
+    // enemy) is still gated behind the Enemy Intel research.
     const enemyLine = `Enemy: ${eff.enemy.name}. ${eff.enemy.desc}`;
+    const bossLine = _bossWeaknessLine(eff);
     const intelLine = (game.unlocks.enemyIntel && !eff.noFormation)
       ? _matchupHint(eff)
       : '';
     const descEl = document.getElementById('zone-desc');
-    descEl.textContent = intelLine ? `${descText}\n\n${enemyLine}\n${intelLine}` : `${descText}\n\n${enemyLine}`;
+    const lines = [descText, enemyLine];
+    if (bossLine) lines.push(bossLine);
+    if (intelLine) lines.push(intelLine);
+    descEl.textContent = lines.filter(Boolean).join('\n\n');
 
     document.getElementById('zone-strength').textContent = fmt(zs.str);
     document.getElementById('player-power').textContent = fmt(power * eff.dmgMult);
@@ -2950,7 +3021,7 @@ const UI = {
       etaRow.style.display = '';
 
       if (isCombatActive()) {
-        const combatFood = game.assignments.fighting * 0.01 * zs.str;
+        const combatFood = game.assignments.fighting * 0.05 * Math.sqrt(zs.str);
         document.getElementById('zone-food-cost').textContent = fmt(combatFood);
         foodRow.style.display = '';
       } else {
